@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Massport ALMS — InApp Proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:       #1A2B4A;
+  --ink-mid:   #3D5177;
+  --ink-soft:  #6B7FA0;
+  --page:      #F8F7F4;
+  --surface:   #FFFFFF;
+  --teal:      #007A6A;
+  --teal-lt:   #E0F2EF;
+  --teal-mid:  #B2DED9;
+  --amber:     #C97B1A;
+  --amber-lt:  #FDF3E3;
+  --amber-mid: #F5C97A;
+  --red:       #B83232;
+  --rule:      rgba(26,43,74,0.1);
+  --rule-md:   rgba(26,43,74,0.18);
+  --track-w:   2px;
+  --serif:     'DM Serif Display', Georgia, serif;
+  --sans:      'Inter', system-ui, sans-serif;
+  --ease:      cubic-bezier(.22,1,.36,1);
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+
+/* ── NAV RAIL ── */
+.rail {
+  position: fixed;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.rail-line {
+  width: var(--track-w);
+  background: var(--rule-md);
+  height: 28px;
+  flex-shrink: 0;
+  transition: background .4s;
+}
+.rail-line.lit { background: var(--teal); }
+.rail-stop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  position: relative;
+}
+.rail-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink-soft);
+  background: var(--page);
+  transition: all .3s;
+  flex-shrink: 0;
+}
+.rail-stop.active .rail-dot,
+.rail-stop:hover .rail-dot {
+  border-color: var(--teal);
+  background: var(--teal);
+  transform: scale(1.3);
+}
+.rail-label {
+  position: absolute;
+  left: 18px;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+  opacity: 0;
+  transition: opacity .2s;
+  pointer-events: none;
+  background: var(--page);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.rail-stop:hover .rail-label,
+.rail-stop.active .rail-label {
+  opacity: 1;
+  color: var(--teal);
+}
+
+/* ── PAGE LAYOUT ── */
+.page-wrap { margin-left: 80px; }
+
+section {
+  padding: 96px 80px 96px 60px;
+  position: relative;
+  border-top: 1px solid var(--rule);
+}
+section:first-of-type { border-top: none; }
+
+/* ── EYEBROW ── */
+.eyebrow {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 1.5px;
+  background: var(--teal);
+  flex-shrink: 0;
+}
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 80px;
+  align-items: center;
+  padding-top: 48px;
+}
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-mid);
+  background: var(--surface);
+  border: 1px solid var(--rule-md);
+  padding: 5px 12px;
+  border-radius: 20px;
+  margin-bottom: 28px;
+}
+.hero-kicker span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: breathe 2.4s ease-in-out infinite;
+}
+@keyframes breathe { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+h1.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(42px, 4.5vw, 68px);
+  line-height: 1.06;
+  letter-spacing: -.02em;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+h1.hero-title em {
+  font-style: italic;
+  color: var(--teal);
+}
+.hero-lead {
+  font-size: 17px;
+  color: var(--ink-mid);
+  line-height: 1.72;
+  max-width: 520px;
+  margin-bottom: 36px;
+}
+.hero-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.meta-pill {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-mid);
+  background: var(--surface);
+  border: 1px solid var(--rule-md);
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+.meta-pill.teal { color: var(--teal); border-color: var(--teal-mid); background: var(--teal-lt); }
+
+/* stats panel */
+.hero-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule-md);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--rule);
+}
+.stat-row:first-child { grid-template-columns: 1fr; }
+.stat-cell {
+  background: var(--surface);
+  padding: 24px 28px;
+}
+.stat-num {
+  font-family: var(--serif);
+  font-size: 40px;
+  line-height: 1;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.stat-num.teal { color: var(--teal); }
+.stat-num.amber { color: var(--amber); }
+.stat-num.red { color: var(--red); }
+.stat-lbl {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.stat-cell.wide { display: flex; gap: 20px; align-items: center; }
+.stat-cell.wide .stat-num { font-size: 26px; flex-shrink: 0; }
+
+/* ── SECTION HEADINGS ── */
+h2.sec-title {
+  font-family: var(--serif);
+  font-size: clamp(32px, 3vw, 50px);
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: 20px;
+  max-width: 700px;
+}
+.sec-body {
+  font-size: 16px;
+  color: var(--ink-mid);
+  max-width: 620px;
+  line-height: 1.75;
+  margin-bottom: 48px;
+}
+
+/* ── PROBLEM ── */
+#problem { background: var(--surface); }
+.problem-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border: 1px solid var(--rule-md); border-radius: 12px; overflow: hidden; }
+.problem-cell {
+  padding: 32px 28px;
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+  transition: background .2s;
+}
+.problem-cell:hover { background: var(--page); }
+.problem-cell:nth-child(3n) { border-right: none; }
+.problem-cell:nth-child(4), .problem-cell:nth-child(5), .problem-cell:nth-child(6) { border-bottom: none; }
+.problem-num {
+  font-family: var(--serif);
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.problem-num.red { color: var(--red); }
+.problem-num.amber { color: var(--amber); }
+.problem-num.teal { color: var(--teal); }
+.problem-cell h3 { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+.problem-cell p { font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+
+/* ── ARCHITECTURE ── */
+#architecture { }
+.arch-note {
+  background: var(--teal-lt);
+  border-left: 3px solid var(--teal);
+  border-radius: 0;
+  padding: 16px 20px;
+  font-size: 14px;
+  color: var(--ink-mid);
+  line-height: 1.65;
+  margin-bottom: 40px;
+  max-width: 720px;
+}
+.arch-note strong { color: var(--teal); font-weight: 600; }
+.arch-stack { display: flex; flex-direction: column; gap: 8px; max-width: 900px; }
+.arch-row {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--rule-md);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color .2s, box-shadow .2s;
+  cursor: default;
+}
+.arch-row:hover { border-color: rgba(0,122,106,.3); box-shadow: 0 2px 12px rgba(0,122,106,.06); }
+.arch-row.optional { border-style: dashed; }
+.arch-phase {
+  padding: 18px 16px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border-right: 1px solid var(--rule);
+  text-align: center;
+  line-height: 1.4;
+}
+.arch-phase.core { color: var(--teal); background: var(--teal-lt); border-right-color: var(--teal-mid); }
+.arch-phase.opt  { color: var(--amber); background: var(--amber-lt); border-right-color: var(--amber-mid); }
+.arch-main { padding: 16px 20px; }
+.arch-name { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+.arch-desc { font-size: 12px; color: var(--ink-soft); }
+.arch-tag {
+  margin: 0 16px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.arch-tag.core { color: var(--teal); background: var(--teal-lt); border: 1px solid var(--teal-mid); }
+.arch-tag.opt  { color: var(--amber); background: var(--amber-lt); border: 1px solid var(--amber-mid); }
+
+/* ── MODULES ── */
+#modules { background: var(--surface); }
+.modules-intro-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-bottom: 56px; }
+.modules-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule-md); border: 1px solid var(--rule-md); border-radius: 12px; overflow: hidden; }
+.mod-tile {
+  background: var(--surface);
+  padding: 28px 24px;
+  cursor: pointer;
+  transition: background .2s;
+  position: relative;
+}
+.mod-tile:hover { background: var(--page); }
+.mod-tile::after {
+  content: '↗';
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  font-size: 14px;
+  color: var(--teal);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.mod-tile:hover::after { opacity: 1; }
+.mod-phase {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+}
+.mod-phase.core { color: var(--teal); background: var(--teal-lt); }
+.mod-phase.opt  { color: var(--amber); background: var(--amber-lt); }
+.mod-icon-wrap { font-size: 22px; margin-bottom: 10px; line-height: 1; }
+.mod-tile h3 { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; line-height: 1.35; }
+.mod-tile p { font-size: 12px; color: var(--ink-soft); line-height: 1.55; }
+
+/* ── TIMELINE ── */
+#timeline { }
+.tl-track { display: flex; gap: 0; overflow: hidden; overflow-x: auto; padding-bottom: 8px; border: 1px solid var(--rule-md); border-radius: 12px; }
+.tl-cell {
+  flex: 1;
+  min-width: 120px;
+  padding: 20px 18px;
+  border-right: 1px solid var(--rule);
+  position: relative;
+  transition: background .2s;
+}
+.tl-cell:last-child { border-right: none; }
+.tl-cell:hover { background: var(--teal-lt); cursor: default; }
+.tl-cell.optional:hover { background: var(--amber-lt); }
+.tl-cell.disc:hover { background: var(--page); }
+.tl-phase-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.tl-cell.core .tl-phase-tag { color: var(--teal); }
+.tl-cell.optional .tl-phase-tag { color: var(--amber); }
+.tl-cell.disc .tl-phase-tag { color: var(--ink-soft); }
+.tl-cell h4 { font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.35; margin-bottom: 4px; }
+.tl-cell span { font-size: 11px; color: var(--ink-soft); }
+.tl-legend { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
+.tl-leg-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); }
+.tl-leg-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+/* ── WORKFLOW ── */
+#workflow { background: var(--surface); }
+.swim-outer { overflow: hidden; overflow-x: auto; border: 1px solid var(--rule-md); border-radius: 12px; }
+.swim-table { min-width: 860px; width: 100%; border-collapse: collapse; }
+.swim-table th, .swim-table td { border: 1px solid var(--rule); padding: 14px 16px; vertical-align: top; }
+.swim-table thead th { background: var(--page); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); border-bottom: 2px solid var(--rule-md); }
+.swim-table thead th:first-child { width: 130px; }
+.swim-role-cell { background: var(--page); font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.swim-role-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.swim-cell-blank { background: var(--page); color: var(--ink-soft); font-size: 11px; font-style: italic; text-align: center; }
+.swim-active { background: var(--teal-lt); font-size: 12px; color: var(--ink-mid); line-height: 1.5; }
+.swim-active-amber { background: var(--amber-lt); font-size: 12px; color: var(--ink-mid); line-height: 1.5; }
+
+/* ── INTEGRATIONS ── */
+#integrations { }
+.int-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-bottom: 40px; }
+.int-grid { display: flex; flex-direction: column; gap: 1px; background: var(--rule-md); border: 1px solid var(--rule-md); border-radius: 12px; overflow: hidden; }
+.int-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 90px;
+  background: var(--surface);
+  transition: background .2s;
+}
+.int-row:hover { background: var(--page); }
+.int-name-cell { padding: 16px 20px; border-right: 1px solid var(--rule); }
+.int-name-cell strong { font-size: 13px; font-weight: 600; color: var(--ink); display: block; margin-bottom: 3px; }
+.int-name-cell span { font-size: 11px; color: var(--teal); }
+.int-desc-cell { padding: 16px 20px; font-size: 12px; color: var(--ink-soft); line-height: 1.55; display: flex; align-items: center; }
+.int-phase-cell { padding: 16px 12px; border-left: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; }
+.int-badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; text-align: center; line-height: 1.4; }
+.int-badge.core { color: var(--teal); background: var(--teal-lt); }
+.int-badge.opt  { color: var(--amber); background: var(--amber-lt); }
+
+/* ── OPEN ITEMS ── */
+#openitems { background: var(--surface); }
+.oq-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--rule-md); border: 1px solid var(--rule-md); border-radius: 12px; overflow: hidden; }
+.oq-cell {
+  background: var(--surface);
+  padding: 24px 24px;
+  display: flex;
+  gap: 16px;
+  transition: background .2s;
+}
+.oq-cell:hover { background: var(--page); }
+.oq-badge {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  flex-shrink: 0; margin-top: 2px;
+}
+.oq-badge.high { background: #FCEAEA; color: var(--red); }
+.oq-badge.med  { background: var(--amber-lt); color: var(--amber); }
+.oq-body h4 { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+.oq-body p  { font-size: 12px; color: var(--ink-soft); line-height: 1.55; }
+.oq-owner   { font-size: 11px; color: var(--teal); font-weight: 500; margin-top: 6px; }
+
+.cta-btn:hover { opacity: .88; transform: translateY(-1px); }
+
+/* ── DRAWER ── */
+.drawer-veil {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(26,43,74,.35);
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+}
+.drawer-veil.open { opacity: 1; pointer-events: all; }
+.drawer {
+  position: fixed; right: 0; top: 0; bottom: 0;
+  width: min(560px, 95vw);
+  background: var(--surface);
+  box-shadow: -4px 0 40px rgba(0,0,0,.12);
+  z-index: 501;
+  transform: translateX(100%);
+  transition: transform .38s var(--ease);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.drawer-veil.open .drawer { transform: translateX(0); }
+.drawer-head {
+  padding: 32px 32px 24px;
+  border-bottom: 1px solid var(--rule);
+  position: sticky; top: 0;
+  background: var(--surface);
+  z-index: 10;
+  display: flex; gap: 16px; align-items: flex-start;
+}
+.drawer-icon { font-size: 32px; line-height: 1; flex-shrink: 0; margin-top: 4px; }
+.drawer-head-text { flex: 1; }
+.drawer-title { font-family: var(--serif); font-size: 24px; color: var(--ink); margin-bottom: 4px; line-height: 1.15; }
+.drawer-sub { font-size: 13px; color: var(--ink-soft); }
+.drawer-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--rule-md);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.drawer-close:hover { background: var(--page); color: var(--ink); }
+.drawer-body { padding: 28px 32px; flex: 1; }
+.drawer-section { margin-bottom: 28px; }
+.drawer-sec-title {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--teal);
+  margin-bottom: 12px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+}
+.drawer-flow { display: flex; flex-direction: column; gap: 0; }
+.drawer-step {
+  display: grid; grid-template-columns: 32px 1fr;
+  gap: 12px; padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+.drawer-step:last-child { border-bottom: none; }
+.drawer-step::before {
+  content: '';
+  position: absolute;
+  left: 15px; top: 44px; bottom: 0;
+  width: 1px; background: var(--rule);
+}
+.drawer-step:last-child::before { display: none; }
+.d-step-num {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--teal-lt); border: 1.5px solid var(--teal-mid);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--teal);
+  flex-shrink: 0; z-index: 1;
+}
+.d-step-body h4 { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; padding-top: 5px; }
+.d-step-body p  { font-size: 12px; color: var(--ink-soft); line-height: 1.55; }
+.drawer-feats { display: flex; flex-direction: column; gap: 6px; }
+.drawer-feat {
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 13px; color: var(--ink-mid); line-height: 1.5;
+  padding: 8px 10px;
+  background: var(--page);
+  border-radius: 6px;
+}
+.drawer-feat::before { content: '→'; color: var(--teal); font-weight: 700; flex-shrink: 0; font-size: 12px; margin-top: 1px; }
+.drawer-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.drawer-col { background: var(--page); border-radius: 8px; padding: 14px; }
+.drawer-col h4 { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+.drawer-col ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.drawer-col li { font-size: 12px; color: var(--ink-soft); padding-left: 12px; position: relative; }
+.drawer-col li::before { content: '·'; position: absolute; left: 0; color: var(--teal); font-weight: 900; font-size: 16px; top: -3px; }
+.drawer-callout {
+  background: var(--teal-lt);
+  border-left: 3px solid var(--teal);
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--ink-mid);
+  line-height: 1.6;
+  border-radius: 0;
+}
+.drawer-callout.amber { background: var(--amber-lt); border-left-color: var(--amber); }
+.drawer-callout strong { color: var(--teal); font-weight: 600; }
+.drawer-callout.amber strong { color: var(--amber); }
+
+/* ── UTILS ── */
+@media (max-width: 900px) {
+  #hero { grid-template-columns: 1fr; }
+  .modules-grid, .problem-cols { grid-template-columns: 1fr 1fr; }
+  .hero-stats { display: none; }
+  section { padding: 72px 32px; }
+  .page-wrap { margin-left: 0; }
+  .rail { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- RAIL -->
+<nav class="rail" id="rail" aria-label="Page navigation">
+  <div class="rail-stop active" data-target="hero" onclick="scrollTo('#hero')">
+    <div class="rail-dot"></div><span class="rail-label">Overview</span>
+  </div>
+  <div class="rail-line" data-between="hero,problem"></div>
+  <div class="rail-stop" data-target="problem" onclick="scrollTo('#problem')">
+    <div class="rail-dot"></div><span class="rail-label">The problem</span>
+  </div>
+  <div class="rail-line" data-between="problem,architecture"></div>
+  <div class="rail-stop" data-target="architecture" onclick="scrollTo('#architecture')">
+    <div class="rail-dot"></div><span class="rail-label">Architecture</span>
+  </div>
+  <div class="rail-line" data-between="architecture,modules"></div>
+  <div class="rail-stop" data-target="modules" onclick="scrollTo('#modules')">
+    <div class="rail-dot"></div><span class="rail-label">Modules</span>
+  </div>
+  <div class="rail-line" data-between="modules,timeline"></div>
+  <div class="rail-stop" data-target="timeline" onclick="scrollTo('#timeline')">
+    <div class="rail-dot"></div><span class="rail-label">Roadmap</span>
+  </div>
+  <div class="rail-line" data-between="timeline,workflow"></div>
+  <div class="rail-stop" data-target="workflow" onclick="scrollTo('#workflow')">
+    <div class="rail-dot"></div><span class="rail-label">Workflows</span>
+  </div>
+  <div class="rail-line" data-between="workflow,integrations"></div>
+  <div class="rail-stop" data-target="integrations" onclick="scrollTo('#integrations')">
+    <div class="rail-dot"></div><span class="rail-label">Integrations</span>
+  </div>
+  <div class="rail-line" data-between="integrations,openitems"></div>
+  <div class="rail-stop" data-target="openitems" onclick="scrollTo('#openitems')">
+    <div class="rail-dot"></div><span class="rail-label">Open items</span>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div>
+    <div class="hero-kicker"><span></span> InApp Inc. · HHS &amp; Transportation Practice · Confidential</div>
+    <h1 class="hero-title">One system for<br>every lease, <em>space,</em><br>and tenant.</h1>
+    <p class="hero-lead">A purpose-built Airport Lease Management System for Massachusetts Port Authority — consolidating fragmented legacy tools into a single, cloud-native platform purpose-built for how Massport actually operates.</p>
+    <div class="hero-meta">
+      <span class="meta-pill teal">Boston Logan · Hanscom · ORH</span>
+      <span class="meta-pill">Oracle Fusion integration</span>
+      <span class="meta-pill">GovCloud hosted</span>
+      <span class="meta-pill">Pluggable architecture</span>
+    </div>
+    <a href="Massport_ALMS_MockUI_v5.html" target="_blank" style="display:inline-flex;align-items:center;gap:10px;margin-top:28px;padding:12px 22px;background:var(--teal);color:#fff;text-decoration:none;border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:600;letter-spacing:.01em;transition:opacity .2s" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+      Preview the ALMS &nbsp;↗
+      <span style="font-size:11px;font-weight:400;opacity:.8;border-left:1px solid rgba(255,255,255,.35);padding-left:10px">Interactive mock UI</span>
+    </a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-row">
+      <div class="stat-cell wide">
+        <div class="stat-num teal" style="font-size:22px">Aviation · Real Estate · Finance · Legal</div>
+        <div class="stat-lbl">Four distinct user groups, each with different workflows, lease types, and reporting needs — all served from one platform</div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-cell">
+        <div class="stat-num" style="font-size:26px;color:var(--ink)">Manual</div>
+        <div class="stat-lbl">Billing process today: Finance downloads a file from Kelar and uploads it to the financial system — no direct integration</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num teal" style="font-size:26px">One</div>
+        <div class="stat-lbl">Person on the Aviation team can run Crystal Reports — no one in the Real Estate group can use it at all</div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-cell">
+        <div class="stat-num" style="font-size:26px;color:var(--ink)">99 years</div>
+        <div class="stat-lbl">Longest ground lease terms in the Real Estate portfolio — stable footprint, very different from Aviation's constantly changing spaces</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num teal" style="font-size:26px">Cloud</div>
+        <div class="stat-lbl">Massport's stated preference for the new system deployment — GovCloud (Azure Government or AWS GovCloud)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PROBLEM ══ -->
+<section id="problem">
+  <div class="eyebrow">The problem we're solving</div>
+  <h2 class="sec-title">Four systemic gaps in<br>Massport's lease operations</h2>
+  <p class="sec-body">The current Kelar CLMS has served Massport for years. But it was never designed for the scale, diversity, or compliance obligations of today's portfolio. These are the critical gaps that a modern ALMS directly addresses.</p>
+  <div class="problem-cols">
+    <div class="problem-cell">
+      <div class="problem-num amber" style="font-size:32px;line-height:1.3">Not user-<br>friendly</div>
+      <h3>Usability gap across user groups</h3>
+      <p>Most users outside the core Aviation team do not consider the system user-friendly. The system was built for the Aviation department and has not served the Real Estate group or other users as well.</p>
+    </div>
+    <div class="problem-cell">
+      <div class="problem-num red" style="font-size:32px;line-height:1.3">Manual<br>billing</div>
+      <h3>No direct financial system integration</h3>
+      <p>Finance downloads the monthly billing file from Kelar and manually uploads it to the financial system. There is no direct integration. The move to Oracle Fusion makes this an immediate priority to address.</p>
+    </div>
+    <div class="problem-cell">
+      <div class="problem-num" style="color:var(--ink-soft);font-size:32px;line-height:1.3">One<br>person</div>
+      <h3>Crystal Reports bottleneck</h3>
+      <p>Only one person on the Aviation team can run Crystal Reports. Nobody in the Real Estate group can use it at all. Business reporting is gated behind a single specialist — a single point of failure for the whole team.</p>
+    </div>
+    <div class="problem-cell">
+      <div class="problem-num teal" style="font-size:32px;line-height:1.3">No GIS<br>for RE</div>
+      <h3>Real Estate group lacks spatial capability</h3>
+      <p>The Real Estate group does not have GIS capability within the current system. They also don't have anyone on their team to maintain it — a gap the new platform needs to accommodate with a low-maintenance option.</p>
+    </div>
+    <div class="problem-cell">
+      <div class="problem-num" style="color:var(--ink-soft);font-size:32px;line-height:1.3">No<br>mobile</div>
+      <h3>No mobile or handheld access</h3>
+      <p>The Real Estate group has specifically requested mobile access. For Aviation staff walking terminals and reviewing spaces with potential tenants, handheld access to lease and floor plan data would be a clear benefit.</p>
+    </div>
+    <div class="problem-cell">
+      <div class="problem-num" style="color:var(--red);font-size:32px;line-height:1.3">Stop-<br>gap</div>
+      <h3>Current upgrade is only a holdover</h3>
+      <p>Kelar is performing an upgrade right now — but only to extend the system's life for a few more years. Massport's stated intent is full replacement. The system's high customization has made finding a commercial substitute difficult.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ARCHITECTURE ══ -->
+<section id="architecture">
+  <div class="eyebrow">Architecture</div>
+  <h2 class="sec-title">Built to grow with you.<br>Never to lock you in.</h2>
+  <p class="sec-body">Every module in the ALMS is a pluggable component. The MVP and Phase 1 deliver a fully operational system. Extended modules connect via internal APIs and can be included in any phase — or deferred indefinitely — with no re-architecture of the core.</p>
+  <div class="arch-note">
+    <strong>Plugin principle:</strong> The core platform exposes internal API endpoints for every extended module from day one. Modules you don't select are simply not deployed — no code is removed, no redesign is required. Any module can be added via a future contract amendment with no disruption to the running system.
+  </div>
+  <div class="arch-stack">
+    <div class="arch-row">
+      <div class="arch-phase core">MVP</div>
+      <div class="arch-main">
+        <div class="arch-name">Core platform foundation</div>
+        <div class="arch-desc">Azure AD SSO · RBAC · Audit trail · Document vault · Notifications engine · REST API gateway · OpenAPI 3.0 sandbox · Plugin scaffolding for all extended modules</div>
+      </div>
+      <div class="arch-tag core">All phases depend on this</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-phase core">MVP</div>
+      <div class="arch-main">
+        <div class="arch-name">Lease administration + GIS + billing core</div>
+        <div class="arch-desc">Full lease lifecycle · CAD/floor plan integration · Monthly billing engine · Basic reporting · Replaces Kelar CLMS for both Aviation and Real Estate groups</div>
+      </div>
+      <div class="arch-tag core">Mandatory core</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-phase core">Phase 1</div>
+      <div class="arch-main">
+        <div class="arch-name">Oracle Fusion integration + aviation stats + full reporting</div>
+        <div class="arch-desc">Automated billing to Oracle AR · GL journal entries · Aviation statistics · Self-service dashboards · Crystal Reports migration · Completes core platform</div>
+      </div>
+      <div class="arch-tag core">Mandatory core</div>
+    </div>
+    <div class="arch-row optional">
+      <div class="arch-phase opt">Plugin · Ph 2</div>
+      <div class="arch-main">
+        <div class="arch-name">Tenant self-service portal</div>
+        <div class="arch-desc">Branded external portal · Invoice payments · Gross sales reporting · Badge applications · Maintenance requests — for concessionaires and airline tenants</div>
+      </div>
+      <div class="arch-tag opt">Optional plugin</div>
+    </div>
+    <div class="arch-row optional">
+      <div class="arch-phase opt">Plugin · Ph 3</div>
+      <div class="arch-main">
+        <div class="arch-name">Regulatory &amp; compliance module</div>
+        <div class="arch-desc">FAA grant assurance · DBE tracking · QTP enforcement · FASB ASC 842 · GASB 87 · ADA compliance — all as first-class data objects</div>
+      </div>
+      <div class="arch-tag opt">Optional plugin</div>
+    </div>
+    <div class="arch-row optional">
+      <div class="arch-phase opt">Plugin · Ph 4</div>
+      <div class="arch-main">
+        <div class="arch-name">Advanced financial module</div>
+        <div class="arch-desc">Percentage-of-revenue · MAG tracking · Landing fees via AODB · CAM billing · Utility recovery · E-signature · Dunning automation · Approval workflows</div>
+      </div>
+      <div class="arch-tag opt">Optional plugin</div>
+    </div>
+    <div class="arch-row optional">
+      <div class="arch-phase opt">Plugin · Ph 5</div>
+      <div class="arch-main">
+        <div class="arch-name">Facilities &amp; maintenance module</div>
+        <div class="arch-desc">IBM Maximo CMMS bi-directional integration · Work order lifecycle · TI allowance tracking · Mobile inspections with ASTM E2018 scoring</div>
+      </div>
+      <div class="arch-tag opt">Optional plugin</div>
+    </div>
+    <div class="arch-row optional">
+      <div class="arch-phase opt">Plugin · Ph 6</div>
+      <div class="arch-main">
+        <div class="arch-name">AI &amp; strategic analytics module</div>
+        <div class="arch-desc">AI lease abstracts · Spatial revenue heatmap · NPV scenario modeling · Predictive analytics · Natural language portfolio queries</div>
+      </div>
+      <div class="arch-tag opt">Optional plugin</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ MODULES ══ -->
+<section id="modules">
+  <div class="eyebrow">Module detail</div>
+  <div class="modules-intro-cols">
+    <div>
+      <h2 class="sec-title" style="margin-bottom:16px">Explore what each module delivers</h2>
+      <p class="sec-body" style="margin-bottom:0">Click any module below to see its workflow, features, and how it connects to the rest of the system. Core modules are included in all contracts. Optional modules are selected at contract time — or added later via amendment.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding-top:8px;">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-mid);">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--teal-lt);border:1px solid var(--teal-mid);flex-shrink:0"></span>
+        Core modules — included in all contracts
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-mid);">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--amber-lt);border:1px solid var(--amber-mid);flex-shrink:0"></span>
+        Optional plugins — select any combination at contract time
+      </div>
+    </div>
+  </div>
+  <div class="modules-grid">
+    <div class="mod-tile" onclick="openDrawer('lease')">
+      <div class="mod-phase core">MVP · Core</div>
+      <div class="mod-icon-wrap">📋</div>
+      <h3>Lease administration &amp; lifecycle</h3>
+      <p>End-to-end management from origination to expiration for all lease types — airlines, concessions, ground leases, FBOs, cargo.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('gis')">
+      <div class="mod-phase core">MVP · Core</div>
+      <div class="mod-icon-wrap">🗺️</div>
+      <h3>GIS &amp; space management</h3>
+      <p>Interactive terminal floor plans with live lease data overlaid on every space — the spatial intelligence the Aviation team relies on daily.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('docs')">
+      <div class="mod-phase core">MVP · Core</div>
+      <div class="mod-icon-wrap">🗂️</div>
+      <h3>Document vault &amp; COI tracking</h3>
+      <p>OCR-indexed, permissioned document repository with full audit trail and automated certificate of insurance tracking.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('billing')">
+      <div class="mod-phase core">MVP → Phase 1</div>
+      <div class="mod-icon-wrap">💰</div>
+      <h3>Billing engine &amp; Oracle Fusion integration</h3>
+      <p>Automated billing runs with direct Oracle Fusion AR integration — eliminating the manual file transfer that creates revenue risk today.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('reporting')">
+      <div class="mod-phase core">Phase 1 · Core</div>
+      <div class="mod-icon-wrap">📊</div>
+      <h3>Reporting &amp; dashboards</h3>
+      <p>Self-service business intelligence for every role — replacing Crystal Reports with real-time dashboards anyone on the team can operate.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('aviation')">
+      <div class="mod-phase core">Phase 1 · Core</div>
+      <div class="mod-icon-wrap">✈️</div>
+      <h3>Aviation statistics</h3>
+      <p>Structured flight data entry by airline with reporting, trend analysis, and export for regulatory submission.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('portal')">
+      <div class="mod-phase opt">Phase 2 · Optional</div>
+      <div class="mod-icon-wrap">🌐</div>
+      <h3>Tenant self-service portal</h3>
+      <p>Massport-branded external portal for concessionaires and airlines — invoices, gross sales submission, badge applications, maintenance requests.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('compliance')">
+      <div class="mod-phase opt">Phase 3 · Optional</div>
+      <div class="mod-icon-wrap">⚖️</div>
+      <h3>Regulatory &amp; compliance module</h3>
+      <p>FAA grant assurance, DBE monitoring, QTP enforcement, FASB ASC 842, and GASB 87 — compliance as first-class data objects.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('financial')">
+      <div class="mod-phase opt">Phase 4 · Optional</div>
+      <div class="mod-icon-wrap">🏦</div>
+      <h3>Advanced financial module</h3>
+      <p>Airport-specific instruments: POR/MAG, landing fees via AODB, CAM billing, utility recovery, e-signature, and dunning automation.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('facilities')">
+      <div class="mod-phase opt">Phase 5 · Optional</div>
+      <div class="mod-icon-wrap">🔧</div>
+      <h3>Facilities &amp; maintenance module</h3>
+      <p>IBM Maximo bi-directional integration with work order lifecycle management, TI allowance tracking, and mobile inspections.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('ai')">
+      <div class="mod-phase opt">Phase 6 · Optional</div>
+      <div class="mod-icon-wrap">🤖</div>
+      <h3>AI &amp; strategic analytics</h3>
+      <p>AI-powered lease abstracting, spatial revenue heatmaps, what-if scenario modeling for CFO decisions, and predictive portfolio analytics.</p>
+    </div>
+    <div class="mod-tile" onclick="openDrawer('migration')">
+      <div class="mod-phase opt" style="color:var(--ink-mid);background:var(--page)">Phase 7 · Required</div>
+      <div class="mod-icon-wrap">🔄</div>
+      <h3>Data migration &amp; go-live</h3>
+      <p>Full extraction from Kelar CLMS — historical lease and billing data, PMWeb documents, CAD/GIS files — with parallel run and cutover.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TIMELINE ══ -->
+<section id="timeline">
+  <div class="eyebrow">Implementation roadmap</div>
+  <h2 class="sec-title">MVP first. Then grow at your pace.</h2>
+  <p class="sec-body">The core platform replaces the Kelar CLMS for both Aviation and Real Estate groups, with Oracle Fusion integration and self-service reporting replacing Crystal Reports. Optional modules can be added in any sequence — before or after go-live.</p>
+  <div class="tl-track">
+    <div class="tl-cell disc">
+      <div class="tl-phase-tag">Pre-work</div>
+      <h4>Phase 0 — Discovery</h4>
+      <span>4–6 weeks</span>
+    </div>
+    <div class="tl-cell core">
+      <div class="tl-phase-tag">MVP · Core</div>
+      <h4>Lease admin + GIS + billing</h4>
+      <span>12–16 weeks</span>
+    </div>
+    <div class="tl-cell core">
+      <div class="tl-phase-tag">Phase 1 · Core</div>
+      <h4>Oracle Fusion + stats + reporting</h4>
+      <span>10–14 weeks</span>
+    </div>
+    <div class="tl-cell optional">
+      <div class="tl-phase-tag">Phase 2 · Optional</div>
+      <h4>Tenant portal</h4>
+      <span>8–10 weeks</span>
+    </div>
+    <div class="tl-cell optional">
+      <div class="tl-phase-tag">Phase 3 · Optional</div>
+      <h4>Regulatory &amp; compliance</h4>
+      <span>8–10 weeks</span>
+    </div>
+    <div class="tl-cell optional">
+      <div class="tl-phase-tag">Phase 4 · Optional</div>
+      <h4>Advanced financial</h4>
+      <span>10–12 weeks</span>
+    </div>
+    <div class="tl-cell optional">
+      <div class="tl-phase-tag">Phase 5 · Optional</div>
+      <h4>Facilities &amp; Maximo</h4>
+      <span>6–8 weeks</span>
+    </div>
+    <div class="tl-cell optional">
+      <div class="tl-phase-tag">Phase 6 · Optional</div>
+      <h4>AI &amp; analytics</h4>
+      <span>6–8 weeks</span>
+    </div>
+    <div class="tl-cell disc">
+      <div class="tl-phase-tag">Phase 7 · Required</div>
+      <h4>UAT + migration + go-live</h4>
+      <span>6–8 weeks</span>
+    </div>
+  </div>
+  <div class="tl-legend">
+    <div class="tl-leg-item"><div class="tl-leg-dot" style="background:var(--teal)"></div> Mandatory core delivery</div>
+    <div class="tl-leg-item"><div class="tl-leg-dot" style="background:var(--amber)"></div> Optional plugin modules — select any combination</div>
+    <div class="tl-leg-item"><div class="tl-leg-dot" style="background:var(--ink-soft)"></div> Required milestones</div>
+  </div>
+</section>
+
+<!-- ══ WORKFLOW ══ -->
+<section id="workflow">
+  <div class="eyebrow">Key workflows</div>
+  <h2 class="sec-title">How the system works<br>for each team</h2>
+  <p class="sec-body">A swimlane view of primary workflows across user groups — from lease origination through billing, compliance, and tenant management. Cells marked (Ph 2+) activate with optional modules.</p>
+  <div class="swim-outer">
+    <table class="swim-table">
+      <thead>
+        <tr>
+          <th>Team</th>
+          <th>Lease origination</th>
+          <th>Space assignment</th>
+          <th>Tenant onboarding</th>
+          <th>Monthly billing</th>
+          <th>Compliance</th>
+          <th>Renewals &amp; expiry</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="swim-role-cell"><span class="swim-role-dot" style="background:var(--teal)"></span>Airport Business Office</td>
+          <td class="swim-active">Draft from template · legal routing · execution</td>
+          <td class="swim-active">GIS map assignment · boundary update</td>
+          <td class="swim-active">Onboarding checklist · COI verification · badge trigger</td>
+          <td class="swim-active">Billing run review · exception handling</td>
+          <td class="swim-active">COI alerts · permit registry · FAA flags (Ph 3)</td>
+          <td class="swim-active">90-day pipeline · renewal workflow trigger</td>
+        </tr>
+        <tr>
+          <td class="swim-role-cell"><span class="swim-role-dot" style="background:var(--amber)"></span>Real Estate group</td>
+          <td class="swim-active">Ground lease drafting · 99-yr term config</td>
+          <td class="swim-cell-blank">—</td>
+          <td class="swim-active">Onboarding checklist · mobile access</td>
+          <td class="swim-active-amber">Ground lease billing review</td>
+          <td class="swim-active-amber">Insurance tracking · covenant monitoring</td>
+          <td class="swim-active-amber">Long-term expiry alerts</td>
+        </tr>
+        <tr>
+          <td class="swim-role-cell"><span class="swim-role-dot" style="background:#3B82F6"></span>Finance &amp; accounting</td>
+          <td class="swim-cell-blank">—</td>
+          <td class="swim-cell-blank">—</td>
+          <td class="swim-active">Security deposit receipt</td>
+          <td class="swim-active">Oracle Fusion auto-push · GL entries · AR aging</td>
+          <td class="swim-active">ASC 842 / GASB 87 disclosure (Ph 3)</td>
+          <td class="swim-active">Revenue-at-risk dashboard</td>
+        </tr>
+        <tr>
+          <td class="swim-role-cell"><span class="swim-role-dot" style="background:#8B5CF6"></span>Legal</td>
+          <td class="swim-active">Redline review · multi-party comment · sign-off</td>
+          <td class="swim-cell-blank">—</td>
+          <td class="swim-cell-blank">Due diligence checklist (Ph 4)</td>
+          <td class="swim-cell-blank">—</td>
+          <td class="swim-active">Default notice · dunning escalation (Ph 4)</td>
+          <td class="swim-active">Amendment routing · early termination</td>
+        </tr>
+        <tr>
+          <td class="swim-role-cell"><span class="swim-role-dot" style="background:var(--ink-soft)"></span>Tenants (portal)</td>
+          <td class="swim-cell-blank">—</td>
+          <td class="swim-cell-blank">—</td>
+          <td class="swim-active-amber">Badge application · permit upload (Ph 2)</td>
+          <td class="swim-active-amber">Invoice view · payment · sales reporting (Ph 2)</td>
+          <td class="swim-active-amber">COI self-upload (Ph 2)</td>
+          <td class="swim-active-amber">Renewal notice receipt (Ph 2)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ INTEGRATIONS ══ -->
+<section id="integrations">
+  <div class="eyebrow">System integrations</div>
+  <div class="int-cols">
+    <div>
+      <h2 class="sec-title" style="margin-bottom:16px">Connects to what<br>Massport already runs</h2>
+      <p class="sec-body" style="margin-bottom:0">The ALMS integrates with Massport's existing technology stack. Mandatory integrations are delivered in MVP and Phase 1. Optional integrations activate automatically with their respective plugin modules — no additional integration work is required when a module is selected.</p>
+    </div>
+    <div style="padding-top:8px">
+      <div style="font-size:13px;color:var(--ink-soft);line-height:1.7">
+        All integrations use <strong style="font-weight:600;color:var(--ink)">REST APIs</strong> where available, with SFTP file exchange as a fallback.<br><br>
+        All data in transit encrypted with <strong style="font-weight:600;color:var(--ink)">TLS 1.3</strong> minimum.<br><br>
+        All data hosted in <strong style="font-weight:600;color:var(--ink)">US-based Azure East US region</strong> to comply with TSA data sovereignty requirements.
+      </div>
+    </div>
+  </div>
+  <div class="int-grid">
+    <div class="int-row">
+      <div class="int-name-cell"><strong>Oracle Fusion ERP</strong><span>Bi-directional REST API</span></div>
+      <div class="int-desc-cell">Invoices pushed to Oracle AR on billing run completion. Payment status returned to ALMS. Automated GL journal entries for revenue recognition and deferred revenue.</div>
+      <div class="int-phase-cell"><span class="int-badge core">Phase 1 · Mandatory</span></div>
+    </div>
+    <div class="int-row">
+      <div class="int-name-cell"><strong>Esri ArcGIS / AutoCAD</strong><span>Inbound GIS feed</span></div>
+      <div class="int-desc-cell">Floor plan geometry consumed from Massport DTIG's Shapefile or DWG files. Lease assignment changes in ALMS pushed back to update the GIS layer.</div>
+      <div class="int-phase-cell"><span class="int-badge core">MVP · Mandatory</span></div>
+    </div>
+    <div class="int-row">
+      <div class="int-name-cell"><strong>Azure AD / Entra ID</strong><span>SAML / OAuth 2.0 SSO</span></div>
+      <div class="int-desc-cell">Single sign-on and MFA for all Massport internal users via existing identity infrastructure. Separate identity provider for tenant portal users.</div>
+      <div class="int-phase-cell"><span class="int-badge core">MVP · Mandatory</span></div>
+    </div>
+    <div class="int-row">
+      <div class="int-name-cell"><strong>PMWeb</strong><span>Data migration only</span></div>
+      <div class="int-desc-cell">All executed lease documents and amendments migrated from PMWeb to the ALMS document vault. No ongoing integration required after migration.</div>
+      <div class="int-phase-cell"><span class="int-badge core">Phase 7 · Required</span></div>
+    </div>
+    <div class="int-row">
+      <div class="int-name-cell"><strong>DocuSign / Adobe Sign</strong><span>Bi-directional API</span></div>
+      <div class="int-desc-cell">Lease documents sent for e-signature directly from ALMS workflow. Executed documents returned and auto-archived to the lease record's document vault.</div>
+      <div class="int-phase-cell"><span class="int-badge opt">Phase 4 · Optional</span></div>
+    </div>
+    <div class="int-row">
+      <div class="int-name-cell"><strong>AODB / FlightAware</strong><span>Inbound REST API (real-time)</span></div>
+      <div class="int-desc-cell">Aircraft movement data, MTOWs, and schedules consumed for landing fee calculation and monthly airline charge runs. Signatory vs. non-signatory rate differentiation.</div>
+      <div class="int-phase-cell"><span class="int-badge opt">Phase 4 · Optional</span></div>
+    </div>
+    <div class="int-row">
+      <div class="int-name-cell"><strong>IBM Maximo CMMS</strong><span>Bi-directional REST API</span></div>
+      <div class="int-desc-cell">Work orders created in ALMS pushed to Maximo for assignment. Completion status and cost data returned to the lease record in ALMS.</div>
+      <div class="int-phase-cell"><span class="int-badge opt">Phase 5 · Optional</span></div>
+    </div>
+    <div class="int-row">
+      <div class="int-name-cell"><strong>SharePoint / OneDrive</strong><span>Bi-directional API</span></div>
+      <div class="int-desc-cell">Lease draft co-authoring in SharePoint with sync back to ALMS on execution. Retention policy enforcement via Microsoft Purview.</div>
+      <div class="int-phase-cell"><span class="int-badge opt">Phase 4 · Optional</span></div>
+    </div>
+    <div class="int-row">
+      <div class="int-name-cell"><strong>Power BI / Tableau</strong><span>Outbound OData feed</span></div>
+      <div class="int-desc-cell">Curated analytics dataset published for custom executive dashboards beyond native ALMS reporting. Enables Massport's BI team to build on ALMS data.</div>
+      <div class="int-phase-cell"><span class="int-badge opt">Phase 6 · Optional</span></div>
+    </div>
+    <div class="int-row">
+      <div class="int-name-cell"><strong>Building Management System</strong><span>Inbound SFTP / API</span></div>
+      <div class="int-desc-cell">Sub-meter utility reads imported from BMS for utility cost recovery billing. Consumption history available to tenants via the self-service portal.</div>
+      <div class="int-phase-cell"><span class="int-badge opt">Phase 4 · Optional</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ OPEN ITEMS ══ -->
+<section id="openitems">
+  <div class="eyebrow">Discovery agenda</div>
+  <h2 class="sec-title">What we need to resolve<br>before scope is final</h2>
+  <p class="sec-body">These are the open questions driving the Phase 0 technical discovery sessions. Resolving them is the prerequisite to a signed Statement of Work. H = High priority, M = Medium priority.</p>
+  <div class="oq-cols">
+    <div class="oq-cell">
+      <div class="oq-badge high">H</div>
+      <div class="oq-body">
+        <h4>Current hosting architecture</h4>
+        <p>Where is the Kelar CLMS hosted today — on-prem, Azure, or another cloud? This drives all infrastructure design decisions.</p>
+        <div class="oq-owner">→ Massport System Administrator</div>
+      </div>
+    </div>
+    <div class="oq-cell">
+      <div class="oq-badge high">H</div>
+      <div class="oq-body">
+        <h4>Oracle Fusion API specs &amp; test environment</h4>
+        <p>What APIs does Massport's Oracle Fusion instance expose, and when will an integration test environment be available?</p>
+        <div class="oq-owner">→ Massport IT / Oracle team</div>
+      </div>
+    </div>
+    <div class="oq-cell">
+      <div class="oq-badge high">H</div>
+      <div class="oq-body">
+        <h4>CAD / GIS data format &amp; migration feasibility</h4>
+        <p>What format are the current floor plan files in, and can they be exported from the Kelar system for migration to Esri ArcGIS?</p>
+        <div class="oq-owner">→ Massport DTIG / System Admin</div>
+      </div>
+    </div>
+    <div class="oq-cell">
+      <div class="oq-badge high">H</div>
+      <div class="oq-body">
+        <h4>Kelar CLMS data model documentation</h4>
+        <p>Is the Kelar data schema documented? This is the foundation of the migration assessment and determines timeline and complexity.</p>
+        <div class="oq-owner">→ Massport System Admin / Kelar</div>
+      </div>
+    </div>
+    <div class="oq-cell">
+      <div class="oq-badge med">M</div>
+      <div class="oq-body">
+        <h4>Crystal Reports inventory</h4>
+        <p>How many Crystal Reports exist, how frequently are they used, and what data sources do they pull? Drives Phase 1 reporting scope.</p>
+        <div class="oq-owner">→ Massport Aviation Team</div>
+      </div>
+    </div>
+    <div class="oq-cell">
+      <div class="oq-badge med">M</div>
+      <div class="oq-body">
+        <h4>Full user roster &amp; role definitions</h4>
+        <p>Complete list of users across ABO, Real Estate group, Finance, and Legal — with specific workflows and access requirements per role.</p>
+        <div class="oq-owner">→ Massport ABO / Real Estate Group</div>
+      </div>
+    </div>
+    <div class="oq-cell">
+      <div class="oq-badge med">M</div>
+      <div class="oq-body">
+        <h4>Plugin module selection</h4>
+        <p>Which of Phases 2–6 does Massport want to include in the initial contract? Determines the total delivery scope and budget envelope.</p>
+        <div class="oq-owner">→ Massport CIO / VP Finance</div>
+      </div>
+    </div>
+    <div class="oq-cell">
+      <div class="oq-badge med">M</div>
+      <div class="oq-body">
+        <h4>FASB ASC 842 / GASB 87 compliance gap</h4>
+        <p>Is Massport currently compliant? If there are gaps, does the Regulatory Compliance module need to be prioritized for Phase 3?</p>
+        <div class="oq-owner">→ Massport Finance / Legal</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+</div><!-- /page-wrap -->
+
+<!-- ══ DRAWER ══ -->
+<div class="drawer-veil" id="veil" onclick="handleVeilClick(event)">
+  <div class="drawer" id="drawer">
+    <div class="drawer-head">
+      <div class="drawer-icon" id="d-icon">📋</div>
+      <div class="drawer-head-text">
+        <div class="drawer-title" id="d-title">Module title</div>
+        <div class="drawer-sub" id="d-sub">Subtitle</div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body" id="d-body"></div>
+  </div>
+</div>
+
+<script>
+const D = {
+  lease:{
+    icon:'📋',title:'Lease administration & lifecycle',sub:'MVP · Core module — replaces Kelar CLMS lease administration for all lease types',
+    body:`
+<div class="drawer-section"><div class="drawer-sec-title">Lease origination workflow</div>
+<div class="drawer-flow">
+  <div class="drawer-step"><div class="d-step-num">1</div><div class="d-step-body"><h4>Template selection</h4><p>Choose from configurable templates: airline use, concession, ground, FBO, cargo, office, storage, ramp. Each template carries a clause library with standard and negotiated variants.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">2</div><div class="d-step-body"><h4>Terms configuration</h4><p>Set rent, square footage, escalation clauses, security deposits, escrow requirements, and insurance minimums per agreement. Highly customizable per negotiated deal.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">3</div><div class="d-step-body"><h4>Legal review & execution</h4><p>Multi-party redline review with comment threading. Full e-signature workflow via DocuSign/Adobe Sign (activated in Phase 4). Executed document auto-archived.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">4</div><div class="d-step-body"><h4>Abstract generation & activation</h4><p>Structured lease abstract generated automatically. Critical date engine activated. Notification recipients and lead times configured per lease.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">5</div><div class="d-step-body"><h4>Lifecycle monitoring</h4><p>Automated alerts at configurable thresholds for expirations, renewal windows, insurance deadlines, rent review triggers, audit rights windows, and holdover status flags.</p></div></div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Supported lease types</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">Airline use agreements (Logan, Hanscom, ORH)</div>
+  <div class="drawer-feat">Concession agreements — retail, F&B, services</div>
+  <div class="drawer-feat">Ground leases (up to 99-year terms)</div>
+  <div class="drawer-feat">FBO and cargo facility leases</div>
+  <div class="drawer-feat">Office and administrative tenancies</div>
+  <div class="drawer-feat">Temporary and seasonal space assignments</div>
+  <div class="drawer-feat">Ramp, gate, and storage licenses</div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Critical date engine</div>
+<div class="drawer-2col">
+  <div class="drawer-col"><h4>What it tracks</h4><ul>
+    <li>Lease commencement and expiration</li>
+    <li>Renewal option exercise windows</li>
+    <li>Rent escalation trigger dates</li>
+    <li>COI / insurance renewal deadlines</li>
+    <li>Holdover status flags</li>
+    <li>Audit rights windows</li>
+  </ul></div>
+  <div class="drawer-col"><h4>How it notifies</h4><ul>
+    <li>Configurable lead times (e.g. 30, 60, 90 days ahead)</li>
+    <li>Configurable recipients per lease and alert type</li>
+    <li>Escalation to supervisor on missed acknowledgment</li>
+    <li>Critical dates calendar dashboard view</li>
+    <li>Email + in-app notification</li>
+  </ul></div>
+</div></div>`
+  },
+  gis:{
+    icon:'🗺️',title:'GIS & space management',sub:'MVP · Core module — interactive terminal floor plan with live lease data overlay',
+    body:`
+<div class="drawer-section"><div class="drawer-sec-title">Space map capabilities</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">Interactive terminal floor plan, color-coded by occupancy status: leased (green), vacant (gray), holdover (amber), pending (blue), reserved (purple)</div>
+  <div class="drawer-feat">Drill-down by terminal, level, and concourse — all from a single unified map view</div>
+  <div class="drawer-feat">Hover or click any space to surface live lease data: tenant, sq footage, rate, term, and status — linked directly to the lease record</div>
+  <div class="drawer-feat">Space boundary editing tools for Aviation staff to maintain accuracy as leases change, without GIS specialist dependency</div>
+  <div class="drawer-feat">Vacancy and availability management: projected availability dates derived automatically from upcoming expirations</div>
+  <div class="drawer-feat">Export floor plans with lease overlays for use in tenant negotiation presentations</div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">CAD data migration approach</div>
+<div class="drawer-callout">
+  <strong>Migration approach:</strong> GIS floor plan files provided by Massport's DTIG team in Esri Shapefile or AutoCAD DWG format. InApp assesses the format in Phase 0 and executes migration into the new ArcGIS-linked layer. Lease assignments from the Kelar CLMS are mapped to the new spatial layer. Open item: CAD format confirmation needed in Phase 0 discovery session.
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Space classification registry</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">Unique space ID, terminal, level, zone, square footage</div>
+  <div class="drawer-feat">Use classification: aviation, concession, cargo, FBO, office, storage, ramp, ground</div>
+  <div class="drawer-feat">Current lease linkage — any space change updates GIS and the lease record simultaneously</div>
+  <div class="drawer-feat">QTP zone exclusivity enforcement activated when Phase 3 (Regulatory Compliance) is selected</div>
+</div></div>`
+  },
+  docs:{
+    icon:'🗂️',title:'Document vault & COI tracking',sub:'MVP · Core module — centralized permissioned document repository',
+    body:`
+<div class="drawer-section"><div class="drawer-sec-title">Document vault capabilities</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">All lease documents, amendments, correspondence, permits, COIs, and photos stored in a single permissioned repository — replacing PMWeb as the document source of record</div>
+  <div class="drawer-feat">OCR-indexed full-text search: find any clause, tenant name, space ID, or financial term across the entire document vault</div>
+  <div class="drawer-feat">Immutable version history: every change logged with user, timestamp, action, and reason — supports legal discovery and FAA audit requests</div>
+  <div class="drawer-feat">Role-based access: Legal (full), Finance (billing documents), ABO (all operational), Tenants (own documents, read-only via Phase 2 portal)</div>
+  <div class="drawer-feat">Long-term document retention post-lease expiration, configurable per record type</div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">COI & compliance tracking</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">COI requirements tracked by tenant type: minimum coverage amounts, required additional insured parties</div>
+  <div class="drawer-feat">Automated renewal request sent to tenant ahead of COI expiration</div>
+  <div class="drawer-feat">Immediate coverage gap flag when any COI lapses — surfaces on compliance dashboard</div>
+  <div class="drawer-feat">Permit and license registry: business licenses, FAA operating certificates, food service permits, liquor licenses — all with expiration alerts</div>
+</div></div>`
+  },
+  billing:{
+    icon:'💰',title:'Billing engine & Oracle Fusion integration',sub:'MVP (billing core) → Phase 1 (Oracle integration) — eliminates manual billing file transfer',
+    body:`
+<div class="drawer-section"><div class="drawer-sec-title">Billing workflow</div>
+<div class="drawer-flow">
+  <div class="drawer-step"><div class="d-step-num">1</div><div class="d-step-body"><h4>Monthly trigger</h4><p>Billing run initiated at month-end. All active leases and changes within the period are queued automatically.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">2</div><div class="d-step-body"><h4>Calculation</h4><p>Fixed rent plus prorated mid-month adjustments plus one-time charges calculated per lease. Mid-month square footage or rate changes are prorated automatically.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">3</div><div class="d-step-body"><h4>ABO review</h4><p>Exception report surfaced for unusual items. ABO reviews and approves before posting. Full audit trail of all billing decisions.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">4</div><div class="d-step-body"><h4>Oracle Fusion push (Phase 1)</h4><p>Approved invoices pushed to Oracle Fusion AR via REST API on billing run approval. No manual file download or upload required.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">5</div><div class="d-step-body"><h4>Reconciliation</h4><p>Oracle payment status returned to ALMS in real time. AR aging dashboard updated automatically. Disputes and payment plans tracked against lease records.</p></div></div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">MVP vs Phase 1 capability</div>
+<div class="drawer-2col">
+  <div class="drawer-col"><h4>MVP delivers</h4><ul>
+    <li>Monthly billing file with all period changes</li>
+    <li>Prorated mid-month adjustments</li>
+    <li>Security deposit and escrow tracking</li>
+    <li>Billing audit trail and reconciliation report</li>
+    <li>File export (interim Finance handoff)</li>
+  </ul></div>
+  <div class="drawer-col"><h4>Phase 1 adds</h4><ul>
+    <li>Direct REST API push to Oracle Fusion AR</li>
+    <li>Automated GL journal entries</li>
+    <li>Payment status feedback from Oracle</li>
+    <li>Revenue recognition automation</li>
+    <li>Chart-of-accounts mapping per lease type</li>
+  </ul></div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Current state → future state</div>
+<div class="drawer-callout">
+  <strong>Today:</strong> Finance manually downloads a billing file from Kelar and uploads it to the financial system — creating reconciliation risk and delays. <strong>Phase 1 target:</strong> Billing runs automatically post to Oracle Fusion AR with no manual intervention required.
+</div></div>`
+  },
+  reporting:{
+    icon:'📊',title:'Reporting & dashboards',sub:'Phase 1 · Core module — replaces Crystal Reports with self-service intelligence for all roles',
+    body:`
+<div class="drawer-section"><div class="drawer-sec-title">Reports available at Phase 1 launch</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">Real-time rent roll: every tenant, space, rate, term, and expiration across the full portfolio — updated continuously, no batch refresh</div>
+  <div class="drawer-feat">Lease expiration pipeline: rolling view by terminal, category, and revenue impact</div>
+  <div class="drawer-feat">Billing summary and accounts receivable aging by tenant</div>
+  <div class="drawer-feat">Occupancy and vacancy dashboard by terminal and space type with projected availability dates</div>
+  <div class="drawer-feat">Insurance and compliance heat map: COI status, permit expiry, overdue inspections — RAG status per tenant</div>
+  <div class="drawer-feat">Critical dates calendar: forward view of upcoming dates, assignable to ABO staff members</div>
+  <div class="drawer-feat">Aviation statistics: annual flights per airline, terminal utilization, year-over-year trend</div>
+  <div class="drawer-feat">Executive portfolio dashboard: live KPI summary for CIO and VP Finance with no manual refresh</div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Crystal Reports migration</div>
+<div class="drawer-callout">
+  <strong>Approach:</strong> A full Crystal Reports audit will be conducted in Phase 0 — count, complexity, frequency of use, and data sources. All business-critical reports will be recreated in the ALMS reporting layer before go-live. The single-user specialist dependency is eliminated: any authorized user can run any report with no technical training.
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Self-service capabilities</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">Ad hoc report builder — no technical training required, accessible to all authorized users</div>
+  <div class="drawer-feat">Filter by terminal, space type, tenant category, and date range on any report or dashboard</div>
+  <div class="drawer-feat">Export to Excel, PDF, and CSV from any report or dashboard</div>
+  <div class="drawer-feat">Power BI / Tableau OData feed for custom dashboards (activated in Phase 6 if selected)</div>
+</div></div>`
+  },
+  aviation:{
+    icon:'✈️',title:'Aviation statistics',sub:'Phase 1 · Core module — structured flight data tracking and reporting by airline',
+    body:`
+<div class="drawer-section"><div class="drawer-sec-title">Data captured</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">Flight counts by airline and reporting period (month, quarter, year)</div>
+  <div class="drawer-feat">Additional aviation metrics — full scope to be confirmed in Phase 0 discovery with Aviation team</div>
+  <div class="drawer-feat">Terminal and gate-level activity tracking where data is available</div>
+  <div class="drawer-feat">Historical data migration from Kelar CLMS aviation statistics tables</div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Reports & analytics</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">Annual flights per airline: year-over-year comparison with trend line</div>
+  <div class="drawer-feat">Terminal utilization reporting by airline and period</div>
+  <div class="drawer-feat">Data export in regulatory submission formats</div>
+  <div class="drawer-feat">Predictive trend analysis activated in Phase 6 (AI & Analytics module) if selected</div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Open item</div>
+<div class="drawer-callout">
+  <strong>Discovery needed:</strong> The full scope of aviation statistics currently tracked in the Kelar CLMS — beyond flight counts — will be confirmed in the Phase 0 discovery session with the Aviation team. This determines the field set and historical migration scope for this module.
+</div></div>`
+  },
+  portal:{
+    icon:'🌐',title:'Tenant self-service portal',sub:'Phase 2 · Optional plugin — external portal for concessionaires and airline tenants',
+    body:`
+<div class="drawer-section">
+<div class="drawer-callout amber">
+  <strong>Optional plugin:</strong> This module connects to the ALMS core via internal APIs. It can be excluded from the initial contract and added via future amendment with no re-architecture. If Phase 4 (Advanced Financial) is not selected, gross sales submissions are stored for manual processing instead of auto-feeding POR calculations.
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Portal workflow</div>
+<div class="drawer-flow">
+  <div class="drawer-step"><div class="d-step-num">1</div><div class="d-step-body"><h4>Secure login</h4><p>Tenant authenticates via a dedicated identity provider with MFA — fully separate from Massport's internal Azure AD.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">2</div><div class="d-step-body"><h4>Dashboard</h4><p>Invoice summary, outstanding balance, lease document access, badge status, open maintenance requests — all in one view.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">3</div><div class="d-step-body"><h4>Self-service actions</h4><p>Pay invoices, submit monthly gross sales reports, apply for airside badges, submit maintenance requests with photo upload.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">4</div><div class="d-step-body"><h4>Auto-processing</h4><p>Payments auto-applied in Oracle Fusion. Sales reports feed POR calculation engine (if Phase 4 active). Badge requests routed to ABO for review.</p></div></div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Capabilities by tenant type</div>
+<div class="drawer-2col">
+  <div class="drawer-col"><h4>Concession tenants</h4><ul>
+    <li>Invoice viewing and online payment (ACH, card, wire)</li>
+    <li>Monthly and quarterly gross sales submission</li>
+    <li>POR and MAG status visibility (Phase 4)</li>
+    <li>Lease document and permit checklist access</li>
+    <li>Maintenance request submission with photos</li>
+    <li>COI self-upload and status tracking</li>
+  </ul></div>
+  <div class="drawer-col"><h4>Airline tenants</h4><ul>
+    <li>Landing fee statements and payment history</li>
+    <li>Gate and use agreement access</li>
+    <li>Billing inquiry submission</li>
+    <li>Airside badge applications for staff</li>
+    <li>Automated access revocation notice ahead of lease expiration</li>
+  </ul></div>
+</div></div>`
+  },
+  compliance:{
+    icon:'⚖️',title:'Regulatory & compliance module',sub:'Phase 3 · Optional plugin — FAA, FASB ASC 842, GASB 87, DBE, and ADA compliance',
+    body:`
+<div class="drawer-section">
+<div class="drawer-callout amber">
+  <strong>Optional plugin:</strong> Compliance data captured in the MVP — COI tracking, lease dates, document vault — is immediately accessible to this module on activation. No backfill is required. Particularly critical given Massport's receipt of FAA Airport Improvement Program (AIP) grants, which create binding federal compliance obligations.
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">FAA grant assurance compliance</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">Dashboard tracking obligations under all active AIP grants: non-exclusive use (GA-22), reasonable access (GA-23), prohibition on revenue diversion, competitive pricing</div>
+  <div class="drawer-feat">Airline use agreement rate-setting documentation: residual vs. compensatory methodology, airline consultation records for FAA audit</div>
+  <div class="drawer-feat">Annual FAA concession revenue report generation per FAA 2019 Policy on Airport Concessions</div>
+  <div class="drawer-feat">QTP enforcement: category exclusives per zone, minimum one QTP concession per terminal, duplicate category prevention, local/regional brand minimum tracking</div>
+  <div class="drawer-feat">DBE participation monitoring: certification validity, revenue vs. DOT/FAA goals, annual DBE report for FAA submission</div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Lease accounting compliance</div>
+<div class="drawer-2col">
+  <div class="drawer-col"><h4>FASB ASC 842 / IFRS 16</h4><ul>
+    <li>Right-of-use asset and lease liability schedules</li>
+    <li>Straight-line rent calculations</li>
+    <li>Variable lease payment tracking</li>
+    <li>Short-term and low-value lease exemptions</li>
+    <li>Full auditor-ready disclosure package</li>
+  </ul></div>
+  <div class="drawer-col"><h4>GASB 87 (government)</h4><ul>
+    <li>Government-specific lease accounting as a public authority</li>
+    <li>Recognition and measurement requirements</li>
+    <li>Disclosure reporting for government financial statements</li>
+    <li>Integration with Oracle Fusion GL</li>
+  </ul></div>
+</div></div>`
+  },
+  financial:{
+    icon:'🏦',title:'Advanced financial module',sub:'Phase 4 · Optional plugin — POR, MAG, landing fees, CAM, e-signature, dunning automation',
+    body:`
+<div class="drawer-section">
+<div class="drawer-callout amber">
+  <strong>Optional plugin:</strong> The MVP billing engine is designed with extension points for POR, MAG, and landing fee structures. Activating Phase 4 does not require changes to MVP billing data or the Oracle Fusion integration from Phase 1.
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Advanced revenue structures</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">Percentage-of-Revenue (POR) with natural and artificial breakpoints; annual true-up and credit invoice generation; same-store sales growth comparison</div>
+  <div class="drawer-feat">Minimum Annual Guarantee (MAG) tracking: actual gross sales vs. MAG by tenant; underperformer flagging for renegotiation or termination evaluation</div>
+  <div class="drawer-feat">MTOW-based landing fee calculation tied to AODB/FlightAware real-time movement data; signatory vs. non-signatory rate schedules</div>
+  <div class="drawer-feat">CAM billing: allocation by sq footage or fixed share; annual reconciliation with tenant audit rights window tracking</div>
+  <div class="drawer-feat">Utility cost recovery: sub-meter reads from BMS with configurable markup rules</div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Collections dunning workflow</div>
+<div class="drawer-flow">
+  <div class="drawer-step"><div class="d-step-num">1</div><div class="d-step-body"><h4>Invoice due</h4><p>Payment due per lease agreement terms.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">2</div><div class="d-step-body"><h4>Friendly reminder</h4><p>Automated courtesy notice sent to tenant with invoice details.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">3</div><div class="d-step-body"><h4>Formal notice + late fee</h4><p>Formal overdue notice issued; late fee applied per lease terms (flat fee or percentage).</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">4</div><div class="d-step-body"><h4>Default warning</h4><p>Default warning with cure period; delivery and read confirmation tracked.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">5</div><div class="d-step-body"><h4>Legal escalation</h4><p>Automatically routed to Legal team with full correspondence history attached.</p></div></div>
+</div></div>`
+  },
+  facilities:{
+    icon:'🔧',title:'Facilities & maintenance module',sub:'Phase 5 · Optional plugin — IBM Maximo integration and TI allowance tracking',
+    body:`
+<div class="drawer-section">
+<div class="drawer-callout amber">
+  <strong>Optional plugin:</strong> If Phase 2 (Tenant Portal) is selected, maintenance requests submitted by tenants are automatically routed to this module's work order engine. Without Phase 5, tenant requests are managed as a standalone queue in ALMS without Maximo integration.
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Work order lifecycle</div>
+<div class="drawer-flow">
+  <div class="drawer-step"><div class="d-step-num">1</div><div class="d-step-body"><h4>Submission</h4><p>Tenant or ABO submits work order with space ID, issue description, urgency level, and photo upload.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">2</div><div class="d-step-body"><h4>Responsibility check</h4><p>Lease responsibility matrix determines whether landlord or tenant obligation — routes accordingly.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">3</div><div class="d-step-body"><h4>Maximo sync</h4><p>Work order pushed to IBM Maximo for assignment to the facilities team. Asset records linked from lease premises.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">4</div><div class="d-step-body"><h4>Fulfillment</h4><p>Maximo tracks progress and SLA compliance. Status updates visible in ALMS and tenant portal in real time.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">5</div><div class="d-step-body"><h4>Cost allocation</h4><p>Completion costs returned from Maximo; allocated to the lease record for landlord-responsible items.</p></div></div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">TI allowance tracking</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">TI commitment tracked from lease execution: disbursement schedule and milestone conditions</div>
+  <div class="drawer-feat">Lien waiver receipts and certificate-of-occupancy linkage</div>
+  <div class="drawer-feat">Amortization schedule embedded in the lease record</div>
+  <div class="drawer-feat">Construction milestone alerts to ABO and Legal; rent abatement period tracking during tenant buildout</div>
+</div></div>`
+  },
+  ai:{
+    icon:'🤖',title:'AI & strategic analytics module',sub:'Phase 6 · Optional plugin — AI abstracts, scenario modeling, spatial heatmaps, predictive analytics',
+    body:`
+<div class="drawer-section">
+<div class="drawer-callout amber">
+  <strong>Optional plugin:</strong> Phase 6 enriches the reporting layer from Phase 1. It benefits significantly from Phase 4 financial data (POR, MAG, landing fees) and Phase 2 tenant NPS data, but delivers standalone value from core lease and billing data alone.
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">AI-assisted capabilities</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">AI lease abstract generation: structured extraction of key economic and operational terms from uploaded executed documents — reducing manual abstracting time significantly</div>
+  <div class="drawer-feat">Spatial revenue heatmap: terminal floor plan overlaid with revenue-per-sq-ft by zone — identifies underperforming areas for concession replanning and capital prioritization</div>
+  <div class="drawer-feat">Billing anomaly detection: flags unusual billing events and payment pattern deviations before they become disputes</div>
+  <div class="drawer-feat">Natural language query interface: ask portfolio questions in plain language — exploratory, subject to feasibility confirmation at scoping</div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Scenario modeling tool (CFO-level)</div>
+<div class="drawer-flow">
+  <div class="drawer-step"><div class="d-step-num">1</div><div class="d-step-body"><h4>Select lease</h4><p>Choose any active or expiring lease in the portfolio to model.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">2</div><div class="d-step-body"><h4>Define scenarios</h4><p>Set parameters: rent abatement period, rate reset, TI allowance, or early termination buyout — up to three scenarios side by side.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">3</div><div class="d-step-body"><h4>NPV comparison</h4><p>Scenarios compared by NPV, payback period, and revenue impact over the remaining lease term.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">4</div><div class="d-step-body"><h4>Excel export</h4><p>Full model exported to Excel for CFO review and board presentation.</p></div></div>
+</div></div>`
+  },
+  migration:{
+    icon:'🔄',title:'Data migration & go-live',sub:'Phase 7 · Required — executed after all selected phases are complete',
+    body:`
+<div class="drawer-section"><div class="drawer-sec-title">Migration scope</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">Full extraction of all lease records from the Kelar CLMS — active, recently expired, and historical (minimum 5-year lookback; full scope from Phase 0 assessment)</div>
+  <div class="drawer-feat">All executed lease documents and amendments migrated from PMWeb to the ALMS document vault</div>
+  <div class="drawer-feat">Aviation statistics historical data migrated from Kelar statistics tables</div>
+  <div class="drawer-feat">GIS / CAD floor plan data migrated from Kelar spatial layer to new ArcGIS-linked layer</div>
+  <div class="drawer-feat">Billing history migration: scope to be confirmed in Phase 0 assessment</div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">Go-live approach</div>
+<div class="drawer-flow">
+  <div class="drawer-step"><div class="d-step-num">1</div><div class="d-step-body"><h4>ETL & validation</h4><p>Extract, transform, and load all migrated records. Each record reconciled against Kelar source data before go-live approval.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">2</div><div class="d-step-body"><h4>User acceptance testing</h4><p>Full UAT with ABO, Real Estate group, Finance, and Legal across all active modules — including any selected optional plugins.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">3</div><div class="d-step-body"><h4>Training</h4><p>Role-specific training sessions for all user groups across all active modules.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">4</div><div class="d-step-body"><h4>Parallel run</h4><p>Kelar CLMS and ALMS operated simultaneously until confidence threshold is met by each user group.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">5</div><div class="d-step-body"><h4>Cutover & hypercare</h4><p>Production cutover during low-activity window. Kelar decommissioned. InApp provides a dedicated hypercare support period post-cutover.</p></div></div>
+</div></div>`
+  },
+  contact:{
+    icon:'🤝',title:"Let's move forward together",sub:'InApp Inc. · HHS & Transportation Practice · Massachusetts Port Authority',
+    body:`
+<div class="drawer-section"><div class="drawer-sec-title">What happens next</div>
+<div class="drawer-flow">
+  <div class="drawer-step"><div class="d-step-num">1</div><div class="d-step-body"><h4>Technical discovery session</h4><p>System Admin session to resolve the four high-priority open items: hosting architecture, Oracle API specs, CAD format, and Kelar data model.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">2</div><div class="d-step-body"><h4>Stakeholder workshops</h4><p>ABO, Real Estate group, Finance, and Legal sessions to validate workflows, role definitions, and Crystal Reports inventory.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">3</div><div class="d-step-body"><h4>Plugin module selection</h4><p>Massport leadership confirms which Phase 2–6 optional modules to include. Unselected modules remain available for future amendment.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">4</div><div class="d-step-body"><h4>InApp proposal</h4><p>Architecture, module pricing, delivery timeline, and resource plan submitted based on Phase 0 discovery findings.</p></div></div>
+  <div class="drawer-step"><div class="d-step-num">5</div><div class="d-step-body"><h4>SOW & kickoff</h4><p>Statement of Work executed via COMMBUYS / MassIT IDIQ vehicle. Project kickoff within two weeks of execution.</p></div></div>
+</div></div>
+<div class="drawer-section"><div class="drawer-sec-title">InApp's commitments</div>
+<div class="drawer-feats">
+  <div class="drawer-feat">MVP delivers a fully operational Kelar CLMS replacement in 12–16 weeks from kickoff</div>
+  <div class="drawer-feat">Pluggable architecture — you only pay for what you need today; modules added via amendment with no disruption</div>
+  <div class="drawer-feat">GovCloud deployment on Azure Government or AWS GovCloud — all data stays in US East region</div>
+  <div class="drawer-feat">Parallel run period and dedicated hypercare support ensure zero disruption to billing operations at go-live</div>
+</div></div>`
+  }
+};
+
+function openDrawer(key){
+  const d=D[key]; if(!d)return;
+  document.getElementById('d-icon').textContent=d.icon;
+  document.getElementById('d-title').textContent=d.title;
+  document.getElementById('d-sub').textContent=d.sub;
+  document.getElementById('d-body').innerHTML=d.body;
+  document.getElementById('veil').classList.add('open');
+  document.body.style.overflow='hidden';
+  document.getElementById('drawer').scrollTop=0;
+}
+function closeDrawer(){
+  document.getElementById('veil').classList.remove('open');
+  document.body.style.overflow='';
+}
+function handleVeilClick(e){
+  if(e.target===document.getElementById('veil')) closeDrawer();
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+
+function scrollTo(sel){
+  const el=document.querySelector(sel);
+  if(el) el.scrollIntoView({behavior:'smooth'});
+}
+
+const sectionIds=['hero','problem','architecture','modules','timeline','workflow','integrations','openitems'];
+const stops=document.querySelectorAll('.rail-stop');
+const lines=document.querySelectorAll('.rail-line');
+
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      const idx=sectionIds.indexOf(entry.target.id);
+      if(idx<0) return;
+      stops.forEach((s,i)=>{
+        s.classList.toggle('active', i===idx);
+      });
+      lines.forEach((l,i)=>{
+        l.classList.toggle('lit', i<idx);
+      });
+    }
+  });
+},{threshold:0.3});
+sectionIds.forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) obs.observe(el);
+});
+</script>
+</body>
+</html>

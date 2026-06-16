@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALMS — Massport Airport Lease Management</title>
+<style>
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ── TOKENS ── */
+:root{
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  --serif:Georgia,'Times New Roman',serif;
+  --ink:#0F1E36;--ink-mid:#2E4267;--ink-soft:#6B7FA0;
+  --page:#F4F2EF;--surface:#FFFFFF;
+  --teal:#007A6A;--teal-lt:#E0F2EF;--teal-mid:#B2DED9;
+  --amber:#C97B1A;--amber-lt:#FDF3E3;--amber-mid:#F5C97A;
+  --red:#B83232;--red-lt:#FCEAEA;
+  --green:#2D7A4F;--green-lt:#E6F5ED;
+  --blue:#1A56A4;--blue-lt:#EAF1FB;
+  --purple:#5B3FA0;--purple-lt:#F0EBFF;
+  --rule:rgba(26,43,74,0.08);--rule-md:rgba(26,43,74,0.14);
+  --sidebar:224px;--topbar:54px;
+}
+
+/* ── SHELL ── */
+html,body{height:100%;overflow:hidden;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--page)}
+.shell{
+  display:grid;
+  grid-template-columns:var(--sidebar) 1fr;
+  grid-template-rows:var(--topbar) 1fr;
+  height:100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  grid-column:1/-1;
+  background:var(--surface);border-bottom:1px solid var(--rule-md);
+  display:flex;align-items:center;padding:0 20px;gap:14px;z-index:10;
+}
+.brand{display:flex;align-items:center;gap:9px;width:calc(var(--sidebar) - 20px);flex-shrink:0}
+.brand-mark{
+  width:30px;height:30px;border-radius:7px;background:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:15px;color:#fff;flex-shrink:0;
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.2}
+.brand-text b{font-size:12px;font-weight:700;color:var(--ink)}
+.brand-text span{font-size:10px;color:var(--ink-soft);font-weight:400}
+.topbar-divider{width:1px;height:20px;background:var(--rule-md);flex-shrink:0}
+.topbar-title{font-size:13px;color:var(--ink-soft)}
+.topbar-spacer{flex:1}
+.sync-pill{
+  display:flex;align-items:center;gap:6px;
+  background:var(--teal-lt);border:1px solid var(--teal-mid);
+  border-radius:20px;padding:4px 10px;font-size:11px;color:var(--teal);font-weight:500;white-space:nowrap;
+}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.topbar-search{
+  display:flex;align-items:center;gap:7px;
+  background:var(--page);border:1px solid var(--rule-md);
+  border-radius:7px;padding:5px 11px;font-size:12px;color:var(--ink-soft);width:220px;cursor:text;
+}
+.user-pill{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-mid);cursor:pointer}
+.avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--teal-lt);border:1.5px solid var(--teal-mid);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:var(--teal);flex-shrink:0;
+}
+.back-link{
+  display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-soft);
+  text-decoration:none;padding:5px 10px;border:1px solid var(--rule-md);border-radius:6px;
+  transition:all .2s;white-space:nowrap;
+}
+.back-link:hover{background:var(--page);color:var(--ink)}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  background:var(--surface);border-right:1px solid var(--rule-md);
+  overflow-y:auto;padding:10px 0 16px;
+}
+.nav-label{
+  font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-soft);padding:0 16px;margin:18px 0 4px;
+}
+.nav-label:first-child{margin-top:4px}
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 16px;font-size:13px;font-weight:500;color:var(--ink-mid);
+  cursor:pointer;transition:background .15s,color .15s;position:relative;
+}
+.nav-item:hover{background:var(--page);color:var(--ink)}
+.nav-item.active{color:var(--teal);background:var(--teal-lt)}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:4px;bottom:4px;
+  width:2.5px;background:var(--teal);border-radius:0 2px 2px 0;
+}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;
+  background:var(--red-lt);color:var(--red);
+}
+.nav-badge.teal{background:var(--teal-lt);color:var(--teal)}
+.nav-badge.amber{background:var(--amber-lt);color:var(--amber)}
+.sidebar-card{
+  margin:20px 12px 0;padding:11px 13px;
+  background:var(--amber-lt);border:1px solid var(--amber-mid);border-radius:8px;
+}
+.sidebar-card .sc-head{font-size:11px;font-weight:600;color:var(--amber);margin-bottom:3px}
+.sidebar-card .sc-sub{font-size:10.5px;color:var(--amber);opacity:.75;line-height:1.45}
+
+/* ── MAIN AREA ── */
+/* Key: main is overflow:hidden so screens are bounded; each screen uses flex column */
+.main{overflow:hidden;display:flex;flex-direction:column;background:var(--page)}
+
+/* Screens: hidden by default; active screen is a flex column filling main */
+.screen{display:none}
+.screen.active{display:flex;flex-direction:column;flex:1;min-height:0}
+
+/* ── PAGE HEADER (shared) ── */
+.page-hdr{
+  padding:20px 28px 0;flex-shrink:0;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+}
+.page-hdr-left{flex:1;min-width:0}
+.page-hdr-left h1{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.page-hdr-left p{font-size:12px;color:var(--ink-soft)}
+.page-hdr-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--sans);font-size:12px;font-weight:500;
+  padding:7px 14px;border-radius:7px;cursor:pointer;
+  border:1px solid var(--rule-md);background:var(--surface);color:var(--ink-mid);
+  transition:all .15s;
+}
+.btn:hover{background:var(--page);color:var(--ink)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.primary:hover{opacity:.88}
+.btn.sm{font-size:11px;padding:5px 10px}
+
+/* ── STATS ROW ── */
+.stats-row{
+  display:flex;margin:16px 28px 0;flex-shrink:0;
+  border:1px solid var(--rule-md);border-radius:12px;overflow:hidden;
+  box-shadow:0 1px 4px rgba(15,30,54,.06);
+}
+.stat-card{
+  flex:1;background:var(--surface);padding:14px 18px;
+  border-right:1px solid var(--rule);position:relative;
+}
+.stat-card:last-child{border-right:none}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.c-teal::after{background:linear-gradient(90deg,var(--teal),#00C4AC)}
+.stat-card.c-amber::after{background:linear-gradient(90deg,var(--amber),#E8A040)}
+.stat-card.c-red::after{background:linear-gradient(90deg,var(--red),#D44)}
+.stat-card.c-blue::after{background:linear-gradient(90deg,var(--blue),#3A8BE4)}
+.s-val{font-size:24px;font-weight:700;line-height:1;margin-bottom:4px}
+.s-val.teal{color:var(--teal)}
+.s-val.amber{color:var(--amber)}
+.s-val.red{color:var(--red)}
+.s-val.blue{color:var(--blue)}
+.s-lbl{font-size:11px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── FILTERS ── */
+.filters{
+  display:flex;gap:7px;align-items:center;padding:14px 28px 0;flex-shrink:0;flex-wrap:wrap;
+}
+.filter-tab{
+  font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;cursor:pointer;
+  border:1px solid var(--rule-md);color:var(--ink-mid);background:var(--surface);transition:all .15s;
+}
+.filter-tab:hover{background:var(--page)}
+.filter-tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.filter-search{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+  background:var(--surface);border:1px solid var(--rule-md);
+  border-radius:7px;padding:5px 10px;font-size:12px;color:var(--ink-soft);width:200px;
+}
+
+/* ── TABLE ── */
+/* table-wrap fills remaining screen height via flex:1 + min-height:0 */
+.table-wrap{
+  margin:12px 28px 28px;flex:1;min-height:0;
+  border:1px solid var(--rule-md);border-radius:12px;overflow:hidden;overflow-y:auto;
+  box-shadow:0 1px 4px rgba(15,30,54,.06);
+}
+table{width:100%;border-collapse:collapse}
+thead th{
+  background:var(--page);font-size:10.5px;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--ink-soft);padding:10px 14px;text-align:left;
+  border-bottom:1px solid var(--rule-md);position:sticky;top:0;
+}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--rule);font-size:12px;color:var(--ink-mid);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#F8F7F4}
+tbody tr:hover td:first-child{box-shadow:inset 2px 0 0 var(--teal)}
+.td-primary{color:var(--ink);font-weight:600}
+.status-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;
+}
+.status-badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.sb-active{background:var(--green-lt);color:var(--green)}
+.sb-active::before{background:var(--green)}
+.sb-holdover{background:var(--amber-lt);color:var(--amber)}
+.sb-holdover::before{background:var(--amber);animation:pulse 1.8s infinite}
+.sb-expiring{background:var(--red-lt);color:var(--red)}
+.sb-expiring::before{background:var(--red)}
+.sb-pending{background:var(--blue-lt);color:var(--blue)}
+.sb-pending::before{background:var(--blue)}
+.row-action{opacity:0;font-size:11px;color:var(--teal);font-weight:600;cursor:pointer;transition:opacity .15s}
+tbody tr:hover .row-action{opacity:1}
+
+/* ── GIS SCREEN ── */
+/* gis-layout fills remaining screen height via flex:1 + min-height:0 */
+.gis-layout{
+  flex:1;min-height:0;margin:14px 28px 28px;
+  display:grid;grid-template-columns:1fr 288px;
+  border:1px solid var(--rule-md);border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 12px rgba(15,30,54,.08);
+}
+.gis-map{
+  background:#D0CBC0;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.gis-map::after{
+  content:'TERMINAL A  ·  BOSTON LOGAN INTERNATIONAL  ·  CONCOURSE A';
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  font-size:8px;font-weight:700;letter-spacing:.2em;
+  color:rgba(40,35,25,.3);white-space:nowrap;pointer-events:none;
+}
+.map-compass{
+  position:absolute;top:10px;right:10px;width:26px;height:26px;
+  border-radius:50%;background:rgba(255,255,255,.65);border:1px solid rgba(40,35,25,.18);
+  display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:rgba(40,35,25,.5);
+}
+.map-legend{
+  position:absolute;top:10px;left:10px;display:flex;gap:5px;
+}
+.ml-chip{
+  display:flex;align-items:center;gap:4px;font-size:8px;font-weight:700;letter-spacing:.05em;
+  background:rgba(255,255,255,.72);border:1px solid rgba(40,35,25,.12);
+  border-radius:4px;padding:3px 6px;color:rgba(40,35,25,.55);
+}
+.ml-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.map-controls{position:absolute;bottom:26px;right:10px;display:flex;flex-direction:column;gap:2px}
+.map-btn{
+  width:26px;height:26px;border-radius:4px;
+  background:rgba(255,255,255,.82);border:1px solid rgba(40,35,25,.16);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;cursor:pointer;color:rgba(40,35,25,.6);transition:background .15s;
+}
+.map-btn:hover{background:#fff;color:var(--ink)}
+#map-tooltip{
+  position:absolute;z-index:100;pointer-events:none;opacity:0;transition:opacity .15s;
+  background:rgba(10,18,34,.93);border:1px solid rgba(255,255,255,.08);border-radius:8px;
+  padding:10px 13px;font-size:11px;color:#fff;max-width:190px;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+}
+#map-tooltip.show{opacity:1}
+#map-tooltip strong{display:block;font-size:12px;margin-bottom:5px}
+.tt-row{display:flex;justify-content:space-between;gap:12px;margin-top:2px}
+.tt-lbl{color:rgba(255,255,255,.45);font-size:10.5px}
+.tt-val{font-weight:600;font-size:10.5px}
+.space-rect{cursor:pointer;transition:opacity .15s}
+.space-rect:hover{opacity:.75}
+.gis-panel{
+  background:var(--surface);border-left:1px solid var(--rule-md);
+  overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;
+}
+.gis-panel-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.occ-wrap{background:var(--page);border-radius:8px;padding:12px}
+.occ-label{font-size:9.5px;font-weight:700;color:var(--ink-soft);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em}
+.occ-bar{display:flex;height:7px;border-radius:4px;overflow:hidden;gap:1px}
+.occ-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}
+.occ-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ink-soft)}
+.occ-dot{width:6px;height:6px;border-radius:2px;flex-shrink:0}
+.gis-detail{flex:1;border-top:1px solid var(--rule);padding-top:12px}
+.gis-detail h4{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:1px}
+.gis-detail .gd-sub{font-size:11px;color:var(--ink-soft);margin-bottom:10px}
+.gd-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.gd-lbl{font-size:11px;color:var(--ink-soft)}
+.gd-val{font-size:12px;font-weight:600;color:var(--ink);text-align:right;max-width:155px;overflow-wrap:break-word}
+.gis-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:9px;padding:20px;background:var(--page);border-radius:8px;text-align:center;
+}
+.gis-empty p{font-size:11px;color:var(--ink-soft);line-height:1.55}
+
+/* ── BILLING SCREEN ── */
+/* billing-layout fills remaining height; it owns the scroll */
+.billing-layout{
+  flex:1;min-height:0;overflow-y:auto;
+  display:grid;grid-template-columns:1fr 296px;gap:20px;padding:16px 28px 28px;
+}
+.billing-col{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--rule-md);border-radius:12px;overflow:hidden}
+.card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 18px;border-bottom:1px solid var(--rule);
+}
+.card-head h3{font-size:13px;font-weight:600;color:var(--ink)}
+.card-head span{font-size:11px;color:var(--ink-soft)}
+.card-body{padding:16px 18px}
+.billing-period{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;background:var(--teal-lt);border-bottom:1px solid var(--teal-mid);
+}
+.billing-period h3{font-size:13px;font-weight:600;color:var(--teal)}
+.billing-period span{font-size:11px;color:var(--teal);font-weight:500}
+.exc-item{
+  display:flex;gap:11px;align-items:flex-start;
+  padding:12px 18px;border-bottom:1px solid var(--rule);
+}
+.exc-item:last-child{border-bottom:none}
+.exc-icon{
+  width:30px;height:30px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+}
+.exc-body h4{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.exc-body p{font-size:11px;color:var(--ink-soft);line-height:1.5}
+.progress-bar{height:6px;background:var(--page);border-radius:3px;overflow:hidden;margin:10px 0 6px}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--teal),#00C4AC)}
+.sum-row{
+  display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--rule);font-size:12px;
+}
+.sum-row:last-child{border-bottom:none;font-weight:600;font-size:13px}
+.sum-lbl{color:var(--ink-soft)}
+.sum-val{color:var(--ink);font-weight:500}
+
+/* ── AVIATION SCREEN ── */
+/* av-layout fills remaining height and scrolls */
+.av-layout{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:16px 28px 28px}
+.chart-wrap{background:var(--surface);border:1px solid var(--rule-md);border-radius:12px;overflow:hidden;flex-shrink:0}
+.bar-chart{padding:14px 18px 10px}
+.bar-row{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.bar-lbl{font-size:11px;font-weight:500;color:var(--ink-mid);width:88px;flex-shrink:0;text-align:right}
+.bar-track{flex:1;height:22px;background:var(--page);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;transition:width .8s cubic-bezier(.22,1,.36,1)}
+.bar-fill.teal{background:linear-gradient(90deg,var(--teal),#00C4AC)}
+.bar-fill.amber{background:linear-gradient(90deg,var(--amber),#E8A040)}
+.bar-fill.blue{background:linear-gradient(90deg,var(--blue),#3A8BE4)}
+.bar-fill.green{background:linear-gradient(90deg,var(--green),#3DAA6A)}
+.bar-fill.purple{background:linear-gradient(90deg,var(--purple),#7B5FD0)}
+.bar-fill.slate{background:linear-gradient(90deg,#4A5A78,#6B7FA0)}
+.bar-val{font-size:10px;font-weight:700;color:#fff;white-space:nowrap}
+/* av table fills remaining space */
+.av-table-wrap{flex:1;min-height:0;border:1px solid var(--rule-md);border-radius:12px;overflow:hidden;overflow-y:auto}
+
+/* ── REPORTS SCREEN ── */
+.rpt-layout{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:16px 28px 28px}
+.rpt-section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.rpt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.rpt-card{
+  background:var(--surface);border:1px solid var(--rule-md);border-radius:12px;
+  padding:16px 18px;cursor:pointer;transition:all .2s;
+}
+.rpt-card:hover{border-color:rgba(0,122,106,.3);background:var(--teal-lt);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,122,106,.1)}
+.rpt-card .r-icon{font-size:22px;margin-bottom:9px}
+.rpt-card h4{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.rpt-card p{font-size:11px;color:var(--ink-soft);line-height:1.5}
+.r-tag{margin-top:9px;display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.rpt-recent{background:var(--surface);border:1px solid var(--rule-md);border-radius:12px;overflow:hidden}
+.recent-row{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 16px;border-bottom:1px solid var(--rule);font-size:12px;
+  transition:background .15s;cursor:pointer;
+}
+.recent-row:last-child{border-bottom:none}
+.recent-row:hover{background:var(--page)}
+.r-name{font-weight:500;color:var(--ink);flex:1}
+.r-meta{font-size:11px;color:var(--ink-soft)}
+.r-btn{font-size:11px;color:var(--teal);font-weight:600;white-space:nowrap}
+
+/* ── MODALS ── */
+.modal-veil{
+  position:fixed;inset:0;z-index:500;background:rgba(10,18,34,.45);
+  backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s;
+  display:flex;align-items:center;justify-content:center;
+}
+.modal-veil.open{opacity:1;pointer-events:all}
+.modal-box{
+  background:var(--surface);border-radius:16px;width:min(680px,92vw);max-height:86vh;overflow-y:auto;
+  transform:translateY(18px) scale(.97);transition:transform .3s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 24px 80px rgba(10,18,34,.28);border:1px solid var(--rule-md);
+}
+.modal-veil.open .modal-box{transform:none}
+.modal-head{
+  padding:22px 26px 16px;border-bottom:1px solid var(--rule);
+  display:flex;gap:12px;align-items:flex-start;
+  position:sticky;top:0;background:var(--surface);z-index:2;
+}
+.modal-head-text{flex:1}
+.modal-head h2{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.modal-head p{font-size:12px;color:var(--ink-soft)}
+.modal-close{
+  width:28px;height:28px;border-radius:50%;border:1px solid var(--rule-md);
+  background:transparent;color:var(--ink-soft);font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;
+}
+.modal-close:hover{background:var(--page);color:var(--ink)}
+.modal-body{padding:20px 26px 26px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.modal-field{background:var(--page);border-radius:8px;padding:12px 14px}
+.mf-label{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+.mf-val{font-size:13px;font-weight:500;color:var(--ink)}
+.modal-section{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--teal);margin-bottom:9px;padding-bottom:7px;border-bottom:1px solid var(--rule)}
+.tl-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:9px}
+.tl-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);margin-top:4px;flex-shrink:0}
+.tl-text{font-size:12px;color:var(--ink-mid);line-height:1.5}
+.tl-text strong{color:var(--ink);font-weight:600}
+
+/* ── FORM ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-row.full{grid-template-columns:1fr}
+.form-field label{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-bottom:5px}
+.form-field input,.form-field select,.form-field textarea{
+  width:100%;font-family:var(--sans);font-size:12px;color:var(--ink);
+  background:var(--page);border:1px solid var(--rule-md);border-radius:7px;
+  padding:7px 10px;outline:none;transition:border-color .15s;
+}
+.form-field input:focus,.form-field select:focus{border-color:var(--teal);background:var(--surface)}
+.form-field textarea{height:64px;resize:none}
+.form-section{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--teal);margin:16px 0 10px;padding-bottom:7px;border-bottom:1px solid var(--rule)}
+
+/* ── EXPIRY BANNER ── */
+.filter-banner{
+  margin:14px 28px 0;padding:10px 16px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.filter-banner.amber{background:var(--amber-lt);border:1px solid var(--amber-mid)}
+.filter-banner.red{background:var(--red-lt);border:1px solid rgba(184,50,50,.25)}
+.filter-banner .fb-txt{font-size:12px;font-weight:600}
+.filter-banner.amber .fb-txt{color:var(--amber)}
+.filter-banner.red .fb-txt{color:var(--red)}
+.filter-banner .fb-sub{font-size:11px;opacity:.75;margin-top:1px}
+.filter-banner .fb-clear{font-size:11px;font-weight:600;cursor:pointer;opacity:.7;white-space:nowrap}
+.filter-banner .fb-clear:hover{opacity:1}
+
+/* ── MODAL TABS ── */
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--rule);margin:0 -26px;padding:0 26px}
+.modal-tab{
+  font-size:12px;font-weight:500;color:var(--ink-soft);padding:10px 16px;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;
+}
+.modal-tab:hover{color:var(--ink)}
+.modal-tab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600}
+.modal-tab-pane{display:none;padding-top:18px}
+.modal-tab-pane.active{display:block}
+
+/* ── DOCUMENT SCREEN ── */
+.doc-wrap{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:0;padding:14px 28px 28px}
+.doc-table-wrap{border:1px solid var(--rule-md);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(15,30,54,.05)}
+.doc-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.doc-badge.exec{background:var(--green-lt);color:var(--green)}
+.doc-badge.curr{background:var(--teal-lt);color:var(--teal)}
+.doc-badge.expir{background:var(--red-lt);color:var(--red)}
+.doc-badge.pend{background:var(--blue-lt);color:var(--blue)}
+.doc-badge.draft{background:var(--page);color:var(--ink-soft);border:1px solid var(--rule-md)}
+.doc-badge.hold{background:var(--amber-lt);color:var(--amber)}
+.doc-icon{font-size:16px;flex-shrink:0}
+.doc-actions{display:flex;gap:6px;opacity:0;transition:opacity .15s}
+tbody tr:hover .doc-actions{opacity:1}
+
+/* ── NOTIFICATIONS SCREEN ── */
+.notif-layout{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:16px;padding:14px 28px 28px}
+.notif-section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:-4px}
+.notif-group{display:flex;flex-direction:column;gap:0;border:1px solid var(--rule-md);border-radius:12px;overflow:hidden}
+.notif-item{
+  display:flex;align-items:flex-start;gap:14px;padding:14px 18px;
+  border-bottom:1px solid var(--rule);background:var(--surface);transition:background .15s;
+}
+.notif-item:last-child{border-bottom:none}
+.notif-item:hover{background:var(--page)}
+.notif-icon{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px}
+.notif-body{flex:1;min-width:0}
+.notif-body h4{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.notif-body p{font-size:12px;color:var(--ink-soft);line-height:1.5}
+.notif-meta{display:flex;align-items:center;gap:10px;margin-top:6px}
+.notif-time{font-size:11px;color:var(--ink-soft)}
+.notif-unread{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.notif-actions{display:flex;gap:6px;align-items:flex-start;flex-shrink:0}
+
+/* ── SETTINGS SCREEN ── */
+.settings-layout{flex:1;min-height:0;overflow:hidden;display:grid;grid-template-columns:200px 1fr;margin:14px 28px 28px;border:1px solid var(--rule-md);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(15,30,54,.05)}
+.settings-nav{background:var(--page);border-right:1px solid var(--rule-md);overflow-y:auto;padding:12px 0}
+.settings-nav-item{
+  display:flex;align-items:center;gap:9px;padding:9px 16px;font-size:13px;font-weight:500;
+  color:var(--ink-mid);cursor:pointer;transition:all .15s;
+}
+.settings-nav-item:hover{background:var(--rule);color:var(--ink)}
+.settings-nav-item.active{color:var(--teal);background:var(--teal-lt);font-weight:600}
+.settings-panel{background:var(--surface);overflow-y:auto;padding:24px 28px}
+.settings-pane{display:none}
+.settings-pane.active{display:block}
+.settings-pane h2{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.settings-pane .sp-sub{font-size:12px;color:var(--ink-soft);margin-bottom:20px}
+.settings-section{margin-bottom:28px}
+.settings-section h3{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--rule)}
+.settings-field{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--rule);gap:16px}
+.settings-field:last-child{border-bottom:none}
+.settings-field .sf-lbl{font-size:13px;font-weight:500;color:var(--ink)}
+.settings-field .sf-sub{font-size:11px;color:var(--ink-soft);margin-top:1px}
+.settings-field .sf-val{font-size:12px;color:var(--ink-mid);text-align:right;flex-shrink:0}
+.toggle{width:38px;height:22px;border-radius:11px;background:var(--teal);cursor:pointer;position:relative;flex-shrink:0;transition:background .2s}
+.toggle.off{background:var(--rule-md)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.off::after{transform:none}
+.toggle:not(.off)::after{transform:translateX(16px)}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block;margin-right:6px}
+.user-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--rule)}
+.user-row:last-child{border-bottom:none}
+.user-avatar-sm{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-info .u-name{font-size:13px;font-weight:600;color:var(--ink)}
+.user-info .u-role{font-size:11px;color:var(--ink-soft)}
+.role-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0}
+
+/* ── FINANCIAL TAB ── */
+.fin-table{width:100%;border-collapse:collapse;font-size:12px}
+.fin-table th{background:var(--page);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);padding:9px 14px;text-align:left;border-bottom:1px solid var(--rule-md)}
+.fin-table td{padding:10px 14px;border-bottom:1px solid var(--rule);color:var(--ink-mid);vertical-align:middle}
+.fin-table tr:last-child td{border-bottom:none}
+.fin-table .td-p{color:var(--ink);font-weight:500}
+.fin-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.fin-kpi-card{background:var(--page);border-radius:10px;padding:14px 16px}
+.fin-kpi-card .fk-val{font-size:20px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.fin-kpi-card .fk-lbl{font-size:11px;color:var(--ink-soft)}
+
+/* ── HISTORY TAB ── */
+.history-list{display:flex;flex-direction:column;gap:0}
+.hist-item{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule)}
+.hist-item:last-child{border-bottom:none}
+.hist-date{font-size:11px;color:var(--ink-soft);width:86px;flex-shrink:0;padding-top:2px}
+.hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.hist-body h4{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.hist-body p{font-size:11px;color:var(--ink-soft);line-height:1.5}
+.hist-by{font-size:10.5px;color:var(--ink-soft);margin-top:4px}
+
+/* ── GIS TERMINAL PLACEHOLDER ── */
+.terminal-placeholder{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;color:rgba(40,35,25,.4);
+}
+.terminal-placeholder h3{font-size:16px;font-weight:700;letter-spacing:.08em}
+.terminal-placeholder p{font-size:11px;opacity:.7;text-align:center;max-width:220px;line-height:1.55}
+
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ══ TOPBAR ══ -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">M</div>
+    <div class="brand-text"><b>ALMS</b><span>Massport Authority</span></div>
+  </div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-title" id="screen-label">Lease portfolio</div>
+  <div class="topbar-spacer"></div>
+  <div class="sync-pill"><div class="sync-dot"></div>Oracle Fusion · synced 2m ago</div>
+  <div class="topbar-search">🔍&nbsp; Search leases, spaces, tenants…</div>
+  <div class="user-pill">
+    <div class="avatar">AO</div>
+    <span>Adina O.</span>
+    <span style="color:var(--ink-soft)">▾</span>
+  </div>
+  <div class="topbar-divider"></div>
+  <a href="Massport_ALMS_Walkthrough.html" class="back-link">← Back to proposal</a>
+</div>
+
+<!-- ══ SIDEBAR ══ -->
+<div class="sidebar">
+  <div class="nav-label">Core</div>
+  <div class="nav-item active" onclick="showScreen('leases',this,'Lease portfolio')">
+    <span class="nav-icon">📋</span>Lease portfolio
+  </div>
+  <div class="nav-item" onclick="showScreen('gis',this,'Space & GIS map')">
+    <span class="nav-icon">🗺️</span>Space & GIS map
+  </div>
+  <div class="nav-item" onclick="showScreen('billing',this,'Monthly billing')">
+    <span class="nav-icon">💰</span>Monthly billing<span class="nav-badge">3</span>
+  </div>
+  <div class="nav-item" onclick="showScreen('aviation',this,'Aviation statistics')">
+    <span class="nav-icon">✈️</span>Aviation statistics
+  </div>
+  <div class="nav-item" onclick="showScreen('reports',this,'Reports')">
+    <span class="nav-icon">📊</span>Reports
+  </div>
+  <div class="nav-label">Lease management</div>
+  <div class="nav-item" onclick="showScreen('leases',this,'Lease portfolio')">
+    <span class="nav-icon">📁</span>All leases
+  </div>
+  <div class="nav-item" style="padding-left:32px" onclick="showFilteredLeases(this,'expiring','Expiring soon')">
+    <span class="nav-icon" style="font-size:10px">↳</span>Expiring soon<span class="nav-badge">7</span>
+  </div>
+  <div class="nav-item" style="padding-left:32px" onclick="showFilteredLeases(this,'holdover','Holdover leases')">
+    <span class="nav-icon" style="font-size:10px">↳</span>Holdover<span class="nav-badge amber">2</span>
+  </div>
+  <div class="nav-label">Administration</div>
+  <div class="nav-item" onclick="showScreen('documents',this,'Documents')"><span class="nav-icon">📄</span>Documents</div>
+  <div class="nav-item" onclick="showScreen('notifications',this,'Notifications')">
+    <span class="nav-icon">🔔</span>Notifications<span class="nav-badge teal">4</span>
+  </div>
+  <div class="nav-item" onclick="showScreen('settings',this,'Settings')"><span class="nav-icon">⚙️</span>Settings</div>
+  <div class="sidebar-card">
+    <div class="sc-head">Oracle Fusion AR</div>
+    <div class="sc-sub">Integration active · Last sync 2 min ago</div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <!-- ── LEASES SCREEN ── -->
+  <div class="screen active" id="screen-leases">
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1>Lease portfolio</h1>
+        <p>All active, expiring, and pending lease agreements across Aviation and Real Estate</p>
+      </div>
+      <div class="page-hdr-actions">
+        <button class="btn" onclick="exportLeases()">Export</button>
+        <button class="btn primary" onclick="openModal('new-lease')">+ New lease</button>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card c-teal"><div class="s-val teal">48</div><div class="s-lbl">Active leases</div></div>
+      <div class="stat-card c-amber"><div class="s-val amber">7</div><div class="s-lbl">Expiring in 90 days</div></div>
+      <div class="stat-card c-red"><div class="s-val red">2</div><div class="s-lbl">Holdover leases</div></div>
+      <div class="stat-card"><div class="s-val">5</div><div class="s-lbl">Pending execution</div></div>
+      <div class="stat-card c-blue"><div class="s-val blue">12</div><div class="s-lbl">COIs due for renewal</div></div>
+    </div>
+    <div class="filters">
+      <div class="filter-tab active" onclick="setFilter(this)">All</div>
+      <div class="filter-tab" onclick="setFilter(this)">Aviation</div>
+      <div class="filter-tab" onclick="setFilter(this)">Real Estate</div>
+      <div class="filter-tab" onclick="setFilter(this)">Concessions</div>
+      <div class="filter-tab" onclick="setFilter(this)">Expiring</div>
+      <div class="filter-tab" onclick="setFilter(this)">Holdover</div>
+      <div class="filter-search">🔍&nbsp; Filter leases…</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tenant</th><th>Space / Location</th><th>Type</th><th>Sq Ft</th>
+            <th style="min-width:105px">Commencement</th><th style="min-width:105px">Expiration</th>
+            <th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr onclick="openModal('lease-detail')" style="cursor:pointer">
+            <td><div class="td-primary">Delta Air Lines</div><div style="font-size:11px;color:var(--ink-soft)">DL · Airline</div></td>
+            <td><div class="td-primary">Terminal A, Gates 1–12</div><div style="font-size:11px;color:var(--ink-soft)">Logan International</div></td>
+            <td>Airline use</td><td>42,800</td><td>Jan 1, 2019</td><td>Dec 31, 2026</td>
+            <td><span class="status-badge sb-expiring">Expiring</span></td><td><span class="row-action">View →</span></td>
+          </tr>
+          <tr onclick="openModal('lease-detail')" style="cursor:pointer">
+            <td><div class="td-primary">Dunkin'</div><div style="font-size:11px;color:var(--ink-soft)">Concession · F&B</div></td>
+            <td><div class="td-primary">Terminal B, Unit B-112</div><div style="font-size:11px;color:var(--ink-soft)">Logan International</div></td>
+            <td>Concession</td><td>1,240</td><td>Mar 15, 2022</td><td>Mar 14, 2027</td>
+            <td><span class="status-badge sb-active">Active</span></td><td><span class="row-action">View →</span></td>
+          </tr>
+          <tr onclick="openModal('lease-detail')" style="cursor:pointer">
+            <td><div class="td-primary">American Airlines</div><div style="font-size:11px;color:var(--ink-soft)">AA · Airline</div></td>
+            <td><div class="td-primary">Terminal B, Gates 20–34</div><div style="font-size:11px;color:var(--ink-soft)">Logan International</div></td>
+            <td>Airline use</td><td>61,400</td><td>Jul 1, 2018</td><td>Jun 30, 2025</td>
+            <td><span class="status-badge sb-holdover">Holdover</span></td><td><span class="row-action">View →</span></td>
+          </tr>
+          <tr onclick="openModal('lease-detail')" style="cursor:pointer">
+            <td><div class="td-primary">Massport Cargo Partners LLC</div><div style="font-size:11px;color:var(--ink-soft)">Cargo facility</div></td>
+            <td><div class="td-primary">Cargo Building 1, North Side</div><div style="font-size:11px;color:var(--ink-soft)">Logan International</div></td>
+            <td>Cargo</td><td>28,000</td><td>Sep 1, 2020</td><td>Aug 31, 2030</td>
+            <td><span class="status-badge sb-active">Active</span></td><td><span class="row-action">View →</span></td>
+          </tr>
+          <tr onclick="openModal('lease-detail')" style="cursor:pointer">
+            <td><div class="td-primary">Prospect Development Partners</div><div style="font-size:11px;color:var(--ink-soft)">Real Estate · Ground lease</div></td>
+            <td><div class="td-primary">100 Seaport Blvd, South Boston</div><div style="font-size:11px;color:var(--ink-soft)">Real Estate portfolio</div></td>
+            <td>Ground lease</td><td>—</td><td>Jan 1, 1998</td><td>Dec 31, 2097</td>
+            <td><span class="status-badge sb-active">Active</span></td><td><span class="row-action">View →</span></td>
+          </tr>
+          <tr onclick="openModal('lease-detail')" style="cursor:pointer">
+            <td><div class="td-primary">Hudson Group</div><div style="font-size:11px;color:var(--ink-soft)">Concession · Retail</div></td>
+            <td><div class="td-primary">Terminal C, Units C-8 & C-9</div><div style="font-size:11px;color:var(--ink-soft)">Logan International</div></td>
+            <td>Concession</td><td>2,180</td><td>Feb 1, 2021</td><td>Jan 31, 2026</td>
+            <td><span class="status-badge sb-expiring">Expiring</span></td><td><span class="row-action">View →</span></td>
+          </tr>
+          <tr onclick="openModal('lease-detail')" style="cursor:pointer">
+            <td><div class="td-primary">JetBlue Airways</div><div style="font-size:11px;color:var(--ink-soft)">B6 · Airline</div></td>
+            <td><div class="td-primary">Terminal C, Gates 1–24</div><div style="font-size:11px;color:var(--ink-soft)">Logan International</div></td>
+            <td>Airline use</td><td>74,200</td><td>Apr 1, 2017</td><td>Mar 31, 2028</td>
+            <td><span class="status-badge sb-active">Active</span></td><td><span class="row-action">View →</span></td>
+          </tr>
+          <tr onclick="openModal('lease-detail')" style="cursor:pointer">
+            <td><div class="td-primary">East Boston Marina LLC</div><div style="font-size:11px;color:var(--ink-soft)">Real Estate · Ground lease</div></td>
+            <td><div class="td-primary">Marginal St, East Boston</div><div style="font-size:11px;color:var(--ink-soft)">Real Estate portfolio</div></td>
+            <td>Ground lease</td><td>—</td><td>Jun 1, 2005</td><td>May 31, 2055</td>
+            <td><span class="status-badge sb-active">Active</span></td><td><span class="row-action">View →</span></td>
+          </tr>
+          <tr onclick="openModal('lease-detail')" style="cursor:pointer">
+            <td><div class="td-primary">Signature Aviation (FBO)</div><div style="font-size:11px;color:var(--ink-soft)">Fixed base operator</div></td>
+            <td><div class="td-primary">Hanscom Field, FBO Ramp</div><div style="font-size:11px;color:var(--ink-soft)">Hanscom Field</div></td>
+            <td>FBO</td><td>18,500</td><td>Oct 1, 2016</td><td>Sep 30, 2026</td>
+            <td><span class="status-badge sb-expiring">Expiring</span></td><td><span class="row-action">View →</span></td>
+          </tr>
+          <tr onclick="openModal('lease-detail')" style="cursor:pointer">
+            <td><div class="td-primary">InMotion Entertainment</div><div style="font-size:11px;color:var(--ink-soft)">Concession · Retail</div></td>
+            <td><div class="td-primary">Terminal E, Unit E-22</div><div style="font-size:11px;color:var(--ink-soft)">Logan International</div></td>
+            <td>Concession</td><td>980</td><td>Nov 1, 2023</td><td>Oct 31, 2028</td>
+            <td><span class="status-badge sb-pending">Pending</span></td><td><span class="row-action">View →</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── GIS SCREEN ── -->
+  <div class="screen" id="screen-gis">
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1>Space &amp; GIS map</h1>
+        <p>Terminal floor plan with live lease data — click any space to view details</p>
+      </div>
+      <div class="page-hdr-actions">
+        <button class="btn sm terminal-btn" data-t="A" style="background:var(--ink);color:#fff;border-color:var(--ink)" onclick="switchTerminal('A')">Terminal A</button>
+        <button class="btn sm terminal-btn" data-t="B" onclick="switchTerminal('B')">Terminal B</button>
+        <button class="btn sm terminal-btn" data-t="C" onclick="switchTerminal('C')">Terminal C</button>
+        <button class="btn sm terminal-btn" data-t="E" onclick="switchTerminal('E')">Terminal E</button>
+      </div>
+    </div>
+    <div class="gis-layout">
+      <!-- MAP -->
+      <div class="gis-map">
+        <div class="map-compass">N</div>
+        <div class="map-legend">
+          <div class="ml-chip"><div class="ml-dot" style="background:#007A6A"></div>AIRLINE</div>
+          <div class="ml-chip"><div class="ml-dot" style="background:#B83232"></div>HOLDOVER</div>
+          <div class="ml-chip"><div class="ml-dot" style="background:#C97B1A"></div>EXPIRING</div>
+          <div class="ml-chip"><div class="ml-dot" style="background:#8A8070"></div>VACANT</div>
+        </div>
+        <svg id="terminal-map" viewBox="0 0 880 460" width="100%" height="100%" style="max-height:100%">
+          <defs>
+            <pattern id="hatch-red" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="#B83232" stroke-width="1.5" stroke-opacity=".3"/>
+            </pattern>
+            <pattern id="hatch-grey" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="#8A8070" stroke-width="1" stroke-opacity=".25"/>
+            </pattern>
+            <pattern id="hatch-blue" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="#1A56A4" stroke-width="1" stroke-opacity=".25"/>
+            </pattern>
+            <radialGradient id="ho-glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#B83232" stop-opacity=".14">
+                <animate attributeName="stop-opacity" values=".14;.02;.14" dur="2.4s" repeatCount="indefinite"/>
+              </stop>
+              <stop offset="100%" stop-color="#B83232" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Tarmac -->
+          <rect x="0" y="0" width="880" height="460" fill="#C8C4B8"/>
+          <line x1="90" y1="8" x2="790" y2="8" stroke="#B0AC9E" stroke-width="2" stroke-dasharray="18,10"/>
+          <line x1="90" y1="452" x2="790" y2="452" stroke="#B0AC9E" stroke-width="2" stroke-dasharray="18,10"/>
+          <!-- Aircraft stands north -->
+          <g opacity=".3" stroke="#7A7668" stroke-width="1" fill="none">
+            <line x1="130" y1="10" x2="130" y2="56"/><line x1="204" y1="10" x2="204" y2="56"/>
+            <line x1="278" y1="10" x2="278" y2="56"/><line x1="352" y1="10" x2="352" y2="56"/>
+            <line x1="492" y1="10" x2="492" y2="56"/><line x1="566" y1="10" x2="566" y2="56"/>
+            <line x1="640" y1="10" x2="640" y2="56"/><line x1="714" y1="10" x2="714" y2="56"/>
+          </g>
+          <g opacity=".26" font-size="17" text-anchor="middle" fill="#7A7668">
+            <text x="130" y="34">✈</text><text x="204" y="34">✈</text>
+            <text x="278" y="34">✈</text><text x="352" y="34">✈</text>
+            <text x="492" y="34">✈</text><text x="566" y="34">✈</text>
+            <text x="640" y="34">✈</text><text x="714" y="34">✈</text>
+          </g>
+          <!-- Aircraft stands south -->
+          <g opacity=".26" stroke="#7A7668" stroke-width="1" fill="none">
+            <line x1="130" y1="450" x2="130" y2="404"/><line x1="204" y1="450" x2="204" y2="404"/>
+            <line x1="278" y1="450" x2="278" y2="404"/><line x1="352" y1="450" x2="352" y2="404"/>
+          </g>
+          <g opacity=".22" font-size="17" text-anchor="middle" fill="#7A7668">
+            <text x="130" y="438" transform="rotate(180,130,438)">✈</text>
+            <text x="204" y="438" transform="rotate(180,204,438)">✈</text>
+            <text x="278" y="438" transform="rotate(180,278,438)">✈</text>
+            <text x="352" y="438" transform="rotate(180,352,438)">✈</text>
+          </g>
+          <!-- Building envelope -->
+          <rect x="60" y="56" width="760" height="348" fill="#F2EEE8" stroke="#5A5348" stroke-width="3"/>
+          <!-- Security vestibule -->
+          <rect x="60" y="56" width="68" height="348" fill="#E5E1D8" stroke="#5A5348" stroke-width="1.5"/>
+          <text x="94" y="232" font-size="7.5" font-weight="700" fill="#8A7A6A" text-anchor="middle" letter-spacing="2" transform="rotate(-90,94,232)">SECURITY / ENTRY</text>
+          <line x1="78" y1="120" x2="118" y2="120" stroke="#A09880" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="78" y1="140" x2="118" y2="140" stroke="#A09880" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="78" y1="160" x2="118" y2="160" stroke="#A09880" stroke-width="1" stroke-dasharray="3,3"/>
+          <rect x="82" y="126" width="32" height="8" rx="2" fill="#C4BFB5"/>
+          <text x="98" y="133" font-size="5.5" fill="#8A7A6A" text-anchor="middle">SCAN</text>
+          <!-- East connector -->
+          <rect x="752" y="56" width="68" height="348" fill="#E5E1D8" stroke="#5A5348" stroke-width="1.5"/>
+          <text x="786" y="232" font-size="7.5" font-weight="700" fill="#8A7A6A" text-anchor="middle" letter-spacing="2" transform="rotate(-90,786,232)">CONNECTOR / EAST</text>
+          <!-- Concourse spine -->
+          <rect x="128" y="158" width="624" height="144" fill="#EBE7DF" stroke="#8A8070" stroke-width="1"/>
+          <line x1="128" y1="230" x2="752" y2="230" stroke="#C4BFB5" stroke-width="1" stroke-dasharray="14,8"/>
+          <text x="440" y="237" font-size="7.5" font-weight="700" fill="#A09880" text-anchor="middle" letter-spacing="4">CONCOURSE A</text>
+          <line x1="128" y1="158" x2="752" y2="158" stroke="#5A5348" stroke-width="2"/>
+          <line x1="128" y1="302" x2="752" y2="302" stroke="#5A5348" stroke-width="2"/>
+          <!-- Delta A1–A4 (north) -->
+          <rect x="128" y="56" width="296" height="102" fill="#D4EDE9" stroke="#007A6A" stroke-width="2"/>
+          <line x1="202" y1="56" x2="202" y2="158" stroke="#007A6A" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>
+          <line x1="276" y1="56" x2="276" y2="158" stroke="#007A6A" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>
+          <line x1="350" y1="56" x2="350" y2="158" stroke="#007A6A" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>
+          <rect x="142" y="56" width="22" height="7" rx="1" fill="#007A6A" opacity=".45"/>
+          <rect x="216" y="56" width="22" height="7" rx="1" fill="#007A6A" opacity=".45"/>
+          <rect x="290" y="56" width="22" height="7" rx="1" fill="#007A6A" opacity=".45"/>
+          <rect x="364" y="56" width="22" height="7" rx="1" fill="#007A6A" opacity=".45"/>
+          <text x="165" y="100" font-size="18" font-weight="700" fill="#005048" text-anchor="middle">A1</text>
+          <text x="239" y="100" font-size="18" font-weight="700" fill="#005048" text-anchor="middle">A2</text>
+          <text x="313" y="100" font-size="18" font-weight="700" fill="#005048" text-anchor="middle">A3</text>
+          <text x="387" y="100" font-size="18" font-weight="700" fill="#005048" text-anchor="middle">A4</text>
+          <rect x="128" y="140" width="296" height="18" fill="#007A6A" opacity=".1"/>
+          <text x="276" y="152" font-size="9" font-weight="700" fill="#007A6A" text-anchor="middle">DELTA AIR LINES · Active · Exp. Dec 2026</text>
+          <rect class="space-rect" x="128" y="56" width="296" height="102" fill="transparent"
+            onclick="selectSpace('delta-gates-1-4')"
+            data-name="Delta Air Lines" data-unit="Gates A1–A4" data-sqft="18,400" data-status="Active · Exp. Dec 31, 2026"/>
+          <!-- Rest area gap -->
+          <rect x="424" y="56" width="32" height="102" fill="#DDD9D0" stroke="#8A8070" stroke-width="1"/>
+          <text x="440" y="112" font-size="6.5" fill="#8A7A6A" text-anchor="middle" letter-spacing="1">REST</text>
+          <!-- United A5–A8 (north) -->
+          <rect x="456" y="56" width="296" height="102" fill="#D4EDE9" stroke="#007A6A" stroke-width="1.5" opacity=".75"/>
+          <line x1="530" y1="56" x2="530" y2="158" stroke="#007A6A" stroke-width="1" stroke-dasharray="3,3" opacity=".5"/>
+          <line x1="604" y1="56" x2="604" y2="158" stroke="#007A6A" stroke-width="1" stroke-dasharray="3,3" opacity=".5"/>
+          <line x1="678" y1="56" x2="678" y2="158" stroke="#007A6A" stroke-width="1" stroke-dasharray="3,3" opacity=".5"/>
+          <rect x="470" y="56" width="22" height="7" rx="1" fill="#007A6A" opacity=".35"/>
+          <rect x="544" y="56" width="22" height="7" rx="1" fill="#007A6A" opacity=".35"/>
+          <rect x="618" y="56" width="22" height="7" rx="1" fill="#007A6A" opacity=".35"/>
+          <rect x="692" y="56" width="22" height="7" rx="1" fill="#007A6A" opacity=".35"/>
+          <text x="493" y="100" font-size="18" font-weight="700" fill="#005048" text-anchor="middle" opacity=".8">A5</text>
+          <text x="567" y="100" font-size="18" font-weight="700" fill="#005048" text-anchor="middle" opacity=".8">A6</text>
+          <text x="641" y="100" font-size="18" font-weight="700" fill="#005048" text-anchor="middle" opacity=".8">A7</text>
+          <text x="715" y="100" font-size="18" font-weight="700" fill="#005048" text-anchor="middle" opacity=".8">A8</text>
+          <rect x="456" y="140" width="296" height="18" fill="#007A6A" opacity=".08"/>
+          <text x="604" y="152" font-size="9" font-weight="700" fill="#007A6A" text-anchor="middle" opacity=".85">UNITED AIRLINES · Active · Exp. Aug 2029</text>
+          <rect class="space-rect" x="456" y="56" width="296" height="102" fill="transparent"
+            onclick="selectSpace('united-gates-5-8')"
+            data-name="United Airlines" data-unit="Gates A5–A8" data-sqft="16,200" data-status="Active · Exp. Aug 31, 2029"/>
+          <!-- American A9–A12 (south) HOLDOVER -->
+          <ellipse cx="276" cy="400" rx="158" ry="24" fill="url(#ho-glow)"/>
+          <rect x="128" y="302" width="296" height="102" fill="#FCEAEA"/>
+          <rect x="128" y="302" width="296" height="102" fill="url(#hatch-red)" opacity=".8"/>
+          <rect x="128" y="302" width="296" height="102" fill="none" stroke="#B83232" stroke-width="2"/>
+          <line x1="202" y1="302" x2="202" y2="404" stroke="#B83232" stroke-width="1" stroke-dasharray="3,3" opacity=".5"/>
+          <line x1="276" y1="302" x2="276" y2="404" stroke="#B83232" stroke-width="1" stroke-dasharray="3,3" opacity=".5"/>
+          <line x1="350" y1="302" x2="350" y2="404" stroke="#B83232" stroke-width="1" stroke-dasharray="3,3" opacity=".5"/>
+          <rect x="142" y="397" width="22" height="7" rx="1" fill="#B83232" opacity=".45"/>
+          <rect x="216" y="397" width="22" height="7" rx="1" fill="#B83232" opacity=".45"/>
+          <rect x="290" y="397" width="22" height="7" rx="1" fill="#B83232" opacity=".45"/>
+          <rect x="364" y="397" width="22" height="7" rx="1" fill="#B83232" opacity=".45"/>
+          <text x="165" y="345" font-size="18" font-weight="700" fill="#7A1A1A" text-anchor="middle">A9</text>
+          <text x="239" y="345" font-size="16" font-weight="700" fill="#7A1A1A" text-anchor="middle">A10</text>
+          <text x="313" y="345" font-size="16" font-weight="700" fill="#7A1A1A" text-anchor="middle">A11</text>
+          <text x="387" y="345" font-size="16" font-weight="700" fill="#7A1A1A" text-anchor="middle">A12</text>
+          <rect x="144" y="366" width="224" height="20" rx="3" fill="#B83232"/>
+          <text x="256" y="380" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">⚠ HOLDOVER — ACTION NEEDED</text>
+          <text x="256" y="396" font-size="8" fill="#B83232" text-anchor="middle" font-weight="600">AMERICAN AIRLINES · Expired Jun 30, 2025 · 24,400 sq ft</text>
+          <rect class="space-rect" x="128" y="302" width="296" height="102" fill="transparent"
+            onclick="selectSpace('amerairlines-holdover')"
+            data-name="American Airlines" data-unit="Gates A9–A12" data-sqft="24,400" data-status="⚠ Holdover — action needed"/>
+          <!-- Concourse kiosks -->
+          <rect class="space-rect" x="164" y="174" width="80" height="50" rx="3"
+            fill="#FDF3E3" stroke="#C97B1A" stroke-width="1.5"
+            onclick="selectSpace('dunkin-a112')"
+            data-name="Dunkin'" data-unit="Unit A-112" data-sqft="1,240" data-status="Active · Exp. Mar 2027"/>
+          <text x="204" y="196" font-size="10" font-weight="700" fill="#7A4A0A" text-anchor="middle">☕ Dunkin'</text>
+          <text x="204" y="209" font-size="8" fill="#C97B1A" text-anchor="middle">A-112 · Active</text>
+
+          <rect class="space-rect" x="268" y="174" width="76" height="50" rx="3"
+            fill="#FDF3E3" stroke="#C97B1A" stroke-width="1.5" stroke-dasharray="4,2"
+            onclick="selectSpace('hudson-c8')"
+            data-name="Hudson Group" data-unit="Unit A-220" data-sqft="2,180" data-status="Expiring Jan 31, 2026"/>
+          <text x="306" y="196" font-size="9.5" font-weight="700" fill="#7A4A0A" text-anchor="middle">📰 Hudson</text>
+          <text x="306" y="209" font-size="7.5" fill="#C97B1A" text-anchor="middle">A-220 · Expiring</text>
+
+          <rect x="358" y="174" width="64" height="50" fill="#F0EDE8" rx="3"/>
+          <rect class="space-rect" x="358" y="174" width="64" height="50" fill="url(#hatch-grey)" rx="3"
+            stroke="#8A8070" stroke-width="1.5" stroke-dasharray="4,2"
+            onclick="selectSpace('vacant-a115')"
+            data-name="Vacant" data-unit="Unit A-115" data-sqft="1,180" data-status="Available"/>
+          <text x="390" y="197" font-size="9" font-weight="600" fill="#8A8070" text-anchor="middle">VACANT</text>
+          <text x="390" y="210" font-size="7.5" fill="#8A8070" text-anchor="middle">A-115</text>
+
+          <rect x="440" y="174" width="72" height="50" fill="#EAF1FB" rx="3"/>
+          <rect class="space-rect" x="440" y="174" width="72" height="50" fill="url(#hatch-blue)" rx="3"
+            stroke="#1A56A4" stroke-width="1.5" stroke-dasharray="4,2"
+            onclick="selectSpace('inmotion-pending')"
+            data-name="InMotion Entertainment" data-unit="Unit A-222" data-sqft="980" data-status="Pending execution"/>
+          <text x="476" y="197" font-size="9" font-weight="700" fill="#0D2F6A" text-anchor="middle">InMotion</text>
+          <text x="476" y="210" font-size="7.5" fill="#1A56A4" text-anchor="middle">A-222 · Pending</text>
+
+          <rect x="530" y="180" width="50" height="38" rx="3" fill="#E8E4DA" stroke="#C4BFB5" stroke-width="1"/>
+          <text x="555" y="203" font-size="7" fill="#A09880" text-anchor="middle">SEATING</text>
+          <rect x="596" y="180" width="50" height="38" rx="3" fill="#E8E4DA" stroke="#C4BFB5" stroke-width="1"/>
+          <text x="621" y="203" font-size="7" fill="#A09880" text-anchor="middle">SEATING</text>
+          <rect x="662" y="180" width="50" height="38" rx="3" fill="#E8E4DA" stroke="#C4BFB5" stroke-width="1"/>
+          <text x="687" y="203" font-size="7" fill="#A09880" text-anchor="middle">RESTROOM</text>
+
+          <!-- East wing: Cargo -->
+          <rect x="756" y="60" width="60" height="108" rx="2" fill="#EAF1FB" stroke="#1A56A4" stroke-width="1.5"/>
+          <text x="786" y="111" font-size="8" font-weight="700" fill="#0D2F6A" text-anchor="middle" transform="rotate(-90,786,111)">CARGO ZONE A</text>
+          <rect class="space-rect" x="756" y="60" width="60" height="108" fill="transparent"
+            onclick="selectSpace('cargo-north')"
+            data-name="Massport Cargo Partners LLC" data-unit="Cargo Zone A" data-sqft="28,000" data-status="Active · Exp. Aug 2030"/>
+          <!-- East wing: Offices -->
+          <rect x="756" y="182" width="60" height="112" rx="2" fill="#F0EBFF" stroke="#5B3FA0" stroke-width="1.5"/>
+          <text x="786" y="240" font-size="7.5" font-weight="700" fill="#3B2070" text-anchor="middle" transform="rotate(-90,786,240)">OFFICES A-301–318</text>
+          <rect class="space-rect" x="756" y="182" width="60" height="112" fill="transparent"
+            onclick="selectSpace('airline-offices')"
+            data-name="Airline Office Suites" data-unit="Units A-301–A-318" data-sqft="14,400" data-status="Active (multiple tenants)"/>
+          <!-- East wing: Storage -->
+          <rect x="756" y="308" width="60" height="96" rx="2" fill="#E6F5ED" stroke="#2D7A4F" stroke-width="1.5"/>
+          <text x="786" y="358" font-size="7.5" font-weight="700" fill="#1A4D31" text-anchor="middle" transform="rotate(-90,786,358)">STORAGE</text>
+          <rect class="space-rect" x="756" y="308" width="60" height="96" fill="transparent"
+            onclick="selectSpace('storage-zone')"
+            data-name="Storage Zone A" data-unit="Cargo / Storage" data-sqft="6,200" data-status="Massport-managed"/>
+          <!-- Scale bar -->
+          <g transform="translate(638,432)">
+            <line x1="0" y1="0" x2="56" y2="0" stroke="#5A5348" stroke-width="1.5"/>
+            <line x1="0" y1="-4" x2="0" y2="4" stroke="#5A5348" stroke-width="1.5"/>
+            <line x1="56" y1="-4" x2="56" y2="4" stroke="#5A5348" stroke-width="1.5"/>
+            <text x="28" y="-6" font-size="7" fill="#5A5348" text-anchor="middle">50 ft</text>
+          </g>
+        </svg>
+        <!-- Tooltip -->
+        <div id="map-tooltip">
+          <strong id="tt-name">—</strong>
+          <div class="tt-row"><span class="tt-lbl">Unit</span><span class="tt-val" id="tt-unit">—</span></div>
+          <div class="tt-row"><span class="tt-lbl">Sq ft</span><span class="tt-val" id="tt-sqft">—</span></div>
+          <div class="tt-row"><span class="tt-lbl">Status</span><span class="tt-val" id="tt-status">—</span></div>
+        </div>
+        <!-- Controls -->
+        <div class="map-controls">
+          <div class="map-btn" onclick="mapZoom(1)">+</div>
+          <div class="map-btn" onclick="mapZoom(-1)">−</div>
+          <div class="map-btn" onclick="mapReset()">⊙</div>
+        </div>
+      </div><!-- /gis-map -->
+
+      <!-- RIGHT PANEL -->
+      <div class="gis-panel">
+        <div class="gis-panel-title">Occupancy overview</div>
+        <div class="occ-wrap">
+          <div class="occ-label">Terminal A · 113,420 sq ft total</div>
+          <div class="occ-bar">
+            <div style="flex:58.8;background:#00C4AC;opacity:.8"></div>
+            <div style="flex:21.5;background:#B83232;opacity:.85"></div>
+            <div style="flex:3.1;background:#F5A623"></div>
+            <div style="flex:12.7;background:rgba(91,63,160,.6)"></div>
+            <div style="flex:1;background:rgba(107,127,160,.35)"></div>
+          </div>
+          <div class="occ-legend">
+            <div class="occ-item"><div class="occ-dot" style="background:#00C4AC"></div>Airline 59%</div>
+            <div class="occ-item"><div class="occ-dot" style="background:#B83232"></div>Holdover 21%</div>
+            <div class="occ-item"><div class="occ-dot" style="background:#F5A623"></div>Concession 3%</div>
+            <div class="occ-item"><div class="occ-dot" style="background:rgba(91,63,160,.6)"></div>Office 13%</div>
+            <div class="occ-item"><div class="occ-dot" style="background:rgba(107,127,160,.4)"></div>Vacant 1%</div>
+          </div>
+        </div>
+        <div class="gis-detail" id="gis-detail">
+          <div class="gis-empty">
+            <div style="font-size:28px">✦</div>
+            <p><strong>Click any space</strong> on the map to view lease details, status, and expiration.</p>
+          </div>
+        </div>
+      </div><!-- /gis-panel -->
+    </div><!-- /gis-layout -->
+  </div><!-- /screen-gis -->
+
+  <!-- ── BILLING SCREEN ── -->
+  <div class="screen" id="screen-billing">
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1>Monthly billing</h1>
+        <p>Current billing run · Changes and exceptions for this period</p>
+      </div>
+      <div class="page-hdr-actions">
+        <button class="btn" onclick="previewBillingReport()">Preview report</button>
+        <button class="btn primary" onclick="postToOracle()">Post to Oracle Fusion →</button>
+      </div>
+    </div>
+    <div class="billing-layout">
+      <!-- Main column -->
+      <div class="billing-col">
+        <div class="card">
+          <div class="billing-period">
+            <h3>June 2025 billing run</h3>
+            <span>48 active leases · 6 changes this period</span>
+          </div>
+          <div style="padding:0">
+            <div class="exc-item">
+              <div class="exc-icon" style="background:var(--amber-lt)">📐</div>
+              <div class="exc-body">
+                <h4>Delta Air Lines — square footage adjustment</h4>
+                <p>Gate A3 reduced from 4,200 to 3,800 sq ft effective June 12. Billing prorated for 18 days.</p>
+              </div>
+              <span class="status-badge sb-active" style="flex-shrink:0;align-self:flex-start;margin-top:2px">Applied</span>
+            </div>
+            <div class="exc-item">
+              <div class="exc-icon" style="background:var(--red-lt)">⚠️</div>
+              <div class="exc-body">
+                <h4>American Airlines — holdover rate applies</h4>
+                <p>Lease expired June 30, 2025. Holdover billing at 110% of prior monthly rate. Renewal in progress.</p>
+              </div>
+              <span class="status-badge sb-holdover" style="flex-shrink:0;align-self:flex-start;margin-top:2px">Review needed</span>
+            </div>
+            <div class="exc-item">
+              <div class="exc-icon" style="background:var(--teal-lt)">🆕</div>
+              <div class="exc-body">
+                <h4>InMotion Entertainment — new concession, partial month</h4>
+                <p>Lease commenced June 15. Billing prorated for 15 days. Security deposit of $12,000 received.</p>
+              </div>
+              <span class="status-badge sb-active" style="flex-shrink:0;align-self:flex-start;margin-top:2px">Applied</span>
+            </div>
+            <div class="exc-item">
+              <div class="exc-icon" style="background:var(--red-lt)">📋</div>
+              <div class="exc-body">
+                <h4>Hudson Group — COI expired</h4>
+                <p>Certificate of Insurance expired June 1. Billing held pending renewed COI. Notice sent June 2.</p>
+              </div>
+              <span class="status-badge sb-expiring" style="flex-shrink:0;align-self:flex-start;margin-top:2px">Hold</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>Billing run progress</h3>
+            <span>Updated 4 minutes ago</span>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:12px;color:var(--ink-soft)">Leases processed</span>
+              <span style="font-size:12px;font-weight:700;color:var(--teal)">45 / 48</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:93.75%"></div></div>
+            <div style="font-size:11px;color:var(--ink-soft)">3 items require review before posting</div>
+            <div style="margin-top:14px;display:flex;gap:8px">
+              <button class="btn sm" onclick="reviewExceptions()">Review exceptions</button>
+              <button class="btn sm primary" onclick="postApproved()">Post approved items</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Side column -->
+      <div class="billing-col">
+        <div class="card">
+          <div class="card-head"><h3>Period summary</h3></div>
+          <div class="card-body" style="padding:0 18px">
+            <div class="sum-row"><span class="sum-lbl">Airline use fees</span><span class="sum-val">$1,284,600</span></div>
+            <div class="sum-row"><span class="sum-lbl">Concession rents</span><span class="sum-val">$198,440</span></div>
+            <div class="sum-row"><span class="sum-lbl">Cargo &amp; FBO</span><span class="sum-val">$87,200</span></div>
+            <div class="sum-row"><span class="sum-lbl">Ground leases</span><span class="sum-val">$44,800</span></div>
+            <div class="sum-row"><span class="sum-lbl">Storage &amp; misc.</span><span class="sum-val">$12,300</span></div>
+            <div class="sum-row" style="padding:14px 0"><span class="sum-lbl">Total billable</span><span class="sum-val" style="color:var(--teal)">$1,627,340</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Oracle Fusion status</h3></div>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+              <span style="font-size:12px;color:var(--ink-mid)">Integration active · Last sync 2 min ago</span>
+            </div>
+            <p style="font-size:11px;color:var(--ink-soft);line-height:1.65">Once approved, invoices will be posted directly to Oracle Fusion AR. No manual file download required.</p>
+            <div style="margin-top:11px;font-size:11px;color:var(--ink-soft)">Previous run: <strong style="color:var(--ink)">May 2025</strong> · Posted Jun 2</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Security deposits</h3></div>
+          <div class="card-body" style="padding:0 18px">
+            <div class="sum-row"><span class="sum-lbl">Cash deposits held</span><span class="sum-val">$284,000</span></div>
+            <div class="sum-row"><span class="sum-lbl">Letters of credit</span><span class="sum-val">4 active</span></div>
+            <div class="sum-row"><span class="sum-lbl">Deposits due for release</span><span class="sum-val" style="color:var(--amber)">2 this month</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /screen-billing -->
+
+  <!-- ── AVIATION SCREEN ── -->
+  <div class="screen" id="screen-aviation">
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1>Aviation statistics</h1>
+        <p>Flight activity by airline · Calendar year 2024</p>
+      </div>
+      <div class="page-hdr-actions">
+        <button class="btn" onclick="exportFlightData()">Export data</button>
+        <button class="btn primary" onclick="enterFlightData()">+ Enter flight data</button>
+      </div>
+    </div>
+    <div class="av-layout">
+      <div class="chart-wrap">
+        <div class="card-head"><h3>Total operations by airline — Logan International, 2024</h3><span>Departures + arrivals combined</span></div>
+        <div class="bar-chart">
+          <div class="bar-row"><div class="bar-lbl">JetBlue</div><div class="bar-track"><div class="bar-fill teal" style="width:88%"><span class="bar-val">41,280 ops</span></div></div></div>
+          <div class="bar-row"><div class="bar-lbl">American</div><div class="bar-track"><div class="bar-fill amber" style="width:72%"><span class="bar-val">33,840 ops</span></div></div></div>
+          <div class="bar-row"><div class="bar-lbl">International</div><div class="bar-track"><div class="bar-fill purple" style="width:62%"><span class="bar-val">29,120 ops</span></div></div></div>
+          <div class="bar-row"><div class="bar-lbl">Delta</div><div class="bar-track"><div class="bar-fill teal" style="width:65%;opacity:.7"><span class="bar-val">30,550 ops</span></div></div></div>
+          <div class="bar-row"><div class="bar-lbl">United</div><div class="bar-track"><div class="bar-fill blue" style="width:48%"><span class="bar-val">22,560 ops</span></div></div></div>
+          <div class="bar-row"><div class="bar-lbl">Southwest</div><div class="bar-track"><div class="bar-fill green" style="width:38%"><span class="bar-val">17,860 ops</span></div></div></div>
+          <div class="bar-row"><div class="bar-lbl">Charter / other</div><div class="bar-track"><div class="bar-fill slate" style="width:18%"><span class="bar-val">8,440 ops</span></div></div></div>
+        </div>
+      </div>
+      <div class="av-table-wrap">
+        <table>
+          <thead>
+            <tr><th>Airline</th><th>IATA</th><th>Departures</th><th>Arrivals</th><th>Total ops</th><th>YoY change</th><th>Lease status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-primary">JetBlue Airways</td><td>B6</td><td>20,640</td><td>20,640</td><td><strong>41,280</strong></td><td style="color:var(--green)">+3.2%</td><td><span class="status-badge sb-active">Active</span></td></tr>
+            <tr><td class="td-primary">American Airlines</td><td>AA</td><td>16,920</td><td>16,920</td><td><strong>33,840</strong></td><td style="color:var(--red)">−1.8%</td><td><span class="status-badge sb-holdover">Holdover</span></td></tr>
+            <tr><td class="td-primary">Delta Air Lines</td><td>DL</td><td>15,275</td><td>15,275</td><td><strong>30,550</strong></td><td style="color:var(--green)">+0.9%</td><td><span class="status-badge sb-expiring">Expiring</span></td></tr>
+            <tr><td class="td-primary">International (multiple)</td><td>—</td><td>14,560</td><td>14,560</td><td><strong>29,120</strong></td><td style="color:var(--green)">+8.4%</td><td><span class="status-badge sb-active">Active</span></td></tr>
+            <tr><td class="td-primary">United Airlines</td><td>UA</td><td>11,280</td><td>11,280</td><td><strong>22,560</strong></td><td style="color:var(--amber)">+0.1%</td><td><span class="status-badge sb-active">Active</span></td></tr>
+            <tr><td class="td-primary">Southwest Airlines</td><td>WN</td><td>8,930</td><td>8,930</td><td><strong>17,860</strong></td><td style="color:var(--red)">−2.1%</td><td><span class="status-badge sb-active">Active</span></td></tr>
+            <tr><td class="td-primary">Charter &amp; other</td><td>—</td><td>4,220</td><td>4,220</td><td><strong>8,440</strong></td><td style="color:var(--ink-soft)">—</td><td><span class="status-badge sb-pending">Varies</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /screen-aviation -->
+
+  <!-- ── REPORTS SCREEN ── -->
+  <div class="screen" id="screen-reports">
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1>Reports</h1>
+        <p>Self-service reports · Replacing Crystal Reports · Available to all authorized users</p>
+      </div>
+      <div class="page-hdr-actions">
+        <button class="btn primary" onclick="buildCustomReport()">+ Build custom report</button>
+      </div>
+    </div>
+    <div class="rpt-layout">
+      <div class="rpt-section-label">Standard reports</div>
+      <div class="rpt-grid">
+        <div class="rpt-card" onclick="runReport('Lease rent roll')">
+          <div class="r-icon">📃</div><h4>Lease rent roll</h4>
+          <p>Full portfolio: tenant, space, rate, term, expiration. Updated in real time.</p>
+          <span class="r-tag" style="background:var(--teal-lt);color:var(--teal)">Most used</span>
+        </div>
+        <div class="rpt-card" onclick="runReport('Expiration pipeline')">
+          <div class="r-icon">📅</div><h4>Expiration pipeline</h4>
+          <p>Upcoming lease expirations by terminal and category. Revenue-at-risk view.</p>
+          <span class="r-tag" style="background:var(--amber-lt);color:var(--amber)">7 expiring soon</span>
+        </div>
+        <div class="rpt-card" onclick="runReport('Billing statement')">
+          <div class="r-icon">💳</div><h4>Billing statement</h4>
+          <p>Monthly billing summary by tenant. Itemized changes and total billable.</p>
+          <span class="r-tag" style="background:var(--teal-lt);color:var(--teal)">Auto-generated</span>
+        </div>
+        <div class="rpt-card" onclick="runReport('Occupancy report')">
+          <div class="r-icon">🏢</div><h4>Occupancy report</h4>
+          <p>Occupancy and vacancy by terminal and space type. Available spaces listed.</p>
+        </div>
+        <div class="rpt-card" onclick="runReport('COI compliance')">
+          <div class="r-icon">🛡️</div><h4>COI &amp; compliance</h4>
+          <p>Insurance certificates and permits status. Upcoming expirations flagged.</p>
+          <span class="r-tag" style="background:var(--red-lt);color:var(--red)">12 due for renewal</span>
+        </div>
+        <div class="rpt-card" onclick="runReport('Aviation statistics')">
+          <div class="r-icon">✈️</div><h4>Aviation statistics</h4>
+          <p>Annual operations by airline. Year-over-year trend. Export for regulatory use.</p>
+        </div>
+      </div>
+      <div class="rpt-section-label">Recently run</div>
+      <div class="rpt-recent">
+        <div class="recent-row"><span style="font-size:15px">📃</span><div class="r-name">Lease rent roll — full portfolio</div><div class="r-meta">Adina O. · Today, 9:14 AM</div><div class="r-btn" onclick="runRecentReport('Lease rent roll')">Run again →</div></div>
+        <div class="recent-row"><span style="font-size:15px">📅</span><div class="r-name">Expiration pipeline — next 90 days</div><div class="r-meta">Jared M. · Yesterday, 3:41 PM</div><div class="r-btn" onclick="runRecentReport('Expiration pipeline')">Run again →</div></div>
+        <div class="recent-row"><span style="font-size:15px">💳</span><div class="r-name">May 2025 billing statement — all tenants</div><div class="r-meta">Finance Team · Jun 3, 2025</div><div class="r-btn" onclick="runRecentReport('May 2025 billing statement')">Run again →</div></div>
+        <div class="recent-row"><span style="font-size:15px">✈️</span><div class="r-name">Aviation statistics — 2024 full year</div><div class="r-meta">Adina O. · May 28, 2025</div><div class="r-btn" onclick="runRecentReport('Aviation statistics 2024')">Run again →</div></div>
+      </div>
+    </div>
+  </div><!-- /screen-reports -->
+
+
+  <!-- ── DOCUMENTS SCREEN ── -->
+  <div class="screen" id="screen-documents">
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1>Documents</h1>
+        <p>Lease agreements, COIs, amendments, and correspondence across all active leases</p>
+      </div>
+      <div class="page-hdr-actions">
+        <button class="btn" onclick="toast('📤 Opening upload dialog…')">Upload</button>
+        <button class="btn primary" onclick="toast('📥 Preparing document package for download…')">Export all</button>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card c-teal"><div class="s-val teal">24</div><div class="s-lbl">Total documents</div></div>
+      <div class="stat-card c-amber"><div class="s-val amber">3</div><div class="s-lbl">Pending review</div></div>
+      <div class="stat-card c-red"><div class="s-val red">2</div><div class="s-lbl">Expiring COIs</div></div>
+      <div class="stat-card c-blue"><div class="s-val blue">1</div><div class="s-lbl">New this month</div></div>
+    </div>
+    <div class="filters" style="margin-top:14px">
+      <div class="filter-tab active" onclick="setDocFilter(this,'All')">All</div>
+      <div class="filter-tab" onclick="setDocFilter(this,'Agreements')">Agreements</div>
+      <div class="filter-tab" onclick="setDocFilter(this,'COIs')">COIs</div>
+      <div class="filter-tab" onclick="setDocFilter(this,'Amendments')">Amendments</div>
+      <div class="filter-tab" onclick="setDocFilter(this,'Notices')">Notices</div>
+      <div class="filter-tab" onclick="setDocFilter(this,'Correspondence')">Correspondence</div>
+      <div class="filter-search">🔍&nbsp; Search documents…</div>
+    </div>
+    <div class="doc-wrap">
+      <div class="doc-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Document</th>
+              <th>Tenant</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="doc-tbody">
+            <tr data-type="Agreements">
+              <td><span class="doc-icon">📄</span></td>
+              <td><div class="td-primary">Lease Agreement #AV-2019-0042</div><div style="font-size:11px;color:var(--ink-soft)">Terminal A, Gates A1–A12 · 42,800 sq ft</div></td>
+              <td>Delta Air Lines</td><td>Airline use</td><td>Jan 1, 2019</td>
+              <td><span class="doc-badge exec">Executed</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('📄 Opening lease agreement…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr data-type="COIs">
+              <td><span class="doc-icon">🛡️</span></td>
+              <td><div class="td-primary">Certificate of Insurance — Standard Airline</div><div style="font-size:11px;color:var(--ink-soft)">Policy #DL-COI-2025-0214 · Liberty Mutual</div></td>
+              <td>Delta Air Lines</td><td>COI</td><td>Feb 14, 2025</td>
+              <td><span class="doc-badge curr">Current</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('🛡️ Opening COI certificate…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr data-type="Amendments">
+              <td><span class="doc-icon">📝</span></td>
+              <td><div class="td-primary">Amendment #1 — Terminal Expansion Adjustment</div><div style="font-size:11px;color:var(--ink-soft)">Gate A3 sq ft adjustment, effective Apr 2022</div></td>
+              <td>Delta Air Lines</td><td>Amendment</td><td>Apr 8, 2022</td>
+              <td><span class="doc-badge exec">Executed</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('📝 Opening amendment…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr data-type="Agreements">
+              <td><span class="doc-icon">📄</span></td>
+              <td><div class="td-primary">Lease Agreement #AV-2018-0031</div><div style="font-size:11px;color:var(--ink-soft)">Terminal B, Gates 20–34 · 61,400 sq ft</div></td>
+              <td>American Airlines</td><td>Airline use</td><td>Jul 1, 2018</td>
+              <td><span class="doc-badge hold">Holdover</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('📄 Opening lease agreement…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr data-type="Notices">
+              <td><span class="doc-icon">⚠️</span></td>
+              <td><div class="td-primary">Holdover Notice &amp; Rate Schedule</div><div style="font-size:11px;color:var(--ink-soft)">110% holdover rate effective Jul 1, 2025</div></td>
+              <td>American Airlines</td><td>Notice</td><td>Jul 3, 2025</td>
+              <td><span class="doc-badge hold">Issued</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('⚠️ Opening holdover notice…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr data-type="COIs">
+              <td><span class="doc-icon">🛡️</span></td>
+              <td><div class="td-primary">Certificate of Insurance — Retail Concession</div><div style="font-size:11px;color:var(--ink-soft)">Policy expired Jan 31, 2026 — renewal required</div></td>
+              <td>Hudson Group</td><td>COI</td><td>Feb 1, 2025</td>
+              <td><span class="doc-badge expir">Expired</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('🛡️ Opening expired COI…')">Open</button><button class="btn sm" onclick="toast('📧 Sending COI renewal reminder…')">Remind</button></div></td>
+            </tr>
+            <tr data-type="Agreements">
+              <td><span class="doc-icon">📄</span></td>
+              <td><div class="td-primary">Concession Agreement #CC-2021-0008</div><div style="font-size:11px;color:var(--ink-soft)">Terminal C, Units C-8 &amp; C-9 · 2,180 sq ft</div></td>
+              <td>Hudson Group</td><td>Concession</td><td>Feb 1, 2021</td>
+              <td><span class="doc-badge expir">Expiring</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('📄 Opening concession agreement…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr data-type="Agreements">
+              <td><span class="doc-icon">📄</span></td>
+              <td><div class="td-primary">Lease Agreement #AV-2017-0018</div><div style="font-size:11px;color:var(--ink-soft)">Terminal C, Gates 1–24 · 74,200 sq ft</div></td>
+              <td>JetBlue Airways</td><td>Airline use</td><td>Apr 1, 2017</td>
+              <td><span class="doc-badge exec">Executed</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('📄 Opening lease agreement…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr data-type="Amendments">
+              <td><span class="doc-icon">📝</span></td>
+              <td><div class="td-primary">Amendment #3 — Gate Extension &amp; Common Area</div><div style="font-size:11px;color:var(--ink-soft)">Additional sq ft and common area allocation</div></td>
+              <td>JetBlue Airways</td><td>Amendment</td><td>Mar 15, 2024</td>
+              <td><span class="doc-badge exec">Executed</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('📝 Opening amendment…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr data-type="Agreements">
+              <td><span class="doc-icon">📄</span></td>
+              <td><div class="td-primary">Draft Concession Agreement #CC-2023-0041</div><div style="font-size:11px;color:var(--ink-soft)">Terminal E, Unit E-22 · 980 sq ft — pending signatures</div></td>
+              <td>InMotion Entertainment</td><td>Concession</td><td>Nov 1, 2023</td>
+              <td><span class="doc-badge pend">Pending</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('📄 Opening draft agreement…')">Open</button><button class="btn sm" onclick="toast('📧 Sending countersignature request…')">Request sig.</button></div></td>
+            </tr>
+            <tr data-type="Agreements">
+              <td><span class="doc-icon">📄</span></td>
+              <td><div class="td-primary">Cargo Facility Agreement #CF-2020-0003</div><div style="font-size:11px;color:var(--ink-soft)">Cargo Building 1, North Side · 28,000 sq ft</div></td>
+              <td>Massport Cargo Partners LLC</td><td>Cargo facility</td><td>Sep 1, 2020</td>
+              <td><span class="doc-badge exec">Executed</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('📄 Opening cargo agreement…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr data-type="Agreements">
+              <td><span class="doc-icon">📄</span></td>
+              <td><div class="td-primary">Ground Lease #GL-1998-0002</div><div style="font-size:11px;color:var(--ink-soft)">100 Seaport Blvd, South Boston · Long-term ground lease</div></td>
+              <td>Prospect Development Partners</td><td>Ground lease</td><td>Jan 1, 1998</td>
+              <td><span class="doc-badge exec">Executed</span></td>
+              <td><div class="doc-actions"><button class="btn sm" onclick="toast('📄 Opening ground lease…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div><!-- /screen-documents -->
+
+  <!-- ── NOTIFICATIONS SCREEN ── -->
+  <div class="screen" id="screen-notifications">
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1>Notifications</h1>
+        <p>4 unread alerts — lease expirations, COI issues, billing exceptions</p>
+      </div>
+      <div class="page-hdr-actions">
+        <button class="btn" onclick="toast('✅ All notifications marked as read.')">Mark all read</button>
+        <button class="btn primary" onclick="showScreen('settings-notif',null,'Settings')">Manage rules →</button>
+      </div>
+    </div>
+    <div class="notif-layout">
+      <!-- Action Required -->
+      <div class="notif-section-label">🔴 Action required</div>
+      <div class="notif-group">
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--red-lt)">⚠️</div>
+          <div class="notif-body">
+            <h4>American Airlines — holdover requires immediate resolution</h4>
+            <p>Lease expired June 30, 2025 (180+ days ago). Currently billing at holdover rate (110%). Renewal negotiation or formal termination notice is required to resolve legal exposure.</p>
+            <div class="notif-meta">
+              <div class="notif-unread" style="background:var(--red)"></div>
+              <span class="notif-time">Today · Lease #AV-2018-0031</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            <button class="btn sm primary" onclick="openModal('lease-detail');toast('📋 Opening American Airlines lease…')">View lease</button>
+            <button class="btn sm" onclick="toast('📧 Escalation email sent to legal team.','success')">Escalate</button>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--red-lt)">🛡️</div>
+          <div class="notif-body">
+            <h4>Hudson Group — COI expired, billing suspended</h4>
+            <p>Certificate of Insurance expired January 31, 2026. Billing for Unit A-220 has been automatically suspended. Renewed COI must be received before billing resumes.</p>
+            <div class="notif-meta">
+              <div class="notif-unread" style="background:var(--red)"></div>
+              <span class="notif-time">Today · Concession #CC-2021-0008</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            <button class="btn sm primary" onclick="toast('📧 COI renewal request sent to Hudson Group.','success')">Request COI</button>
+            <button class="btn sm" onclick="toast('📄 Opening Hudson Group file…')">View file</button>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--blue-lt)">✍️</div>
+          <div class="notif-body">
+            <h4>InMotion Entertainment — lease pending countersignature for 23 days</h4>
+            <p>Draft Concession Agreement #CC-2023-0041 sent for execution on November 1, 2023. Countersignature from Massport Legal has not been returned. Lease is billing on holdover terms.</p>
+            <div class="notif-meta">
+              <div class="notif-unread" style="background:var(--blue)"></div>
+              <span class="notif-time">Nov 24, 2023 · Concession #CC-2023-0041</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            <button class="btn sm primary" onclick="toast('📧 Countersignature reminder sent to legal.','success')">Remind legal</button>
+            <button class="btn sm" onclick="toast('📄 Opening draft agreement…')">View draft</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review Recommended -->
+      <div class="notif-section-label">🟡 Review recommended</div>
+      <div class="notif-group">
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--amber-lt)">📅</div>
+          <div class="notif-body">
+            <h4>Delta Air Lines — renewal notice deadline in 94 days</h4>
+            <p>Tenant must exercise renewal option by September 30, 2026 or lease expires December 31, 2026. Two 5-year renewal options remain. Renewal discussions should begin immediately.</p>
+            <div class="notif-meta">
+              <span class="notif-time">Deadline: Sep 30, 2026 · Lease #AV-2019-0042</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            <button class="btn sm primary" onclick="openModal('lease-detail')">View lease</button>
+            <button class="btn sm" onclick="toast('📧 Renewal discussion initiated with Delta team.','success')">Initiate renewal</button>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--amber-lt)">📅</div>
+          <div class="notif-body">
+            <h4>Signature Aviation (FBO) — expiring Sep 30, 2026</h4>
+            <p>FBO agreement at Hanscom Field expiring in 94 days. No renewal discussions initiated. Revenue impact: ~$18,500 sq ft of FBO ramp space. Recommend issuing RFP or commencing direct negotiation.</p>
+            <div class="notif-meta">
+              <span class="notif-time">Expiry: Sep 30, 2026 · FBO Agreement</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            <button class="btn sm primary" onclick="toast('📋 Opening Signature Aviation lease…')">View lease</button>
+            <button class="btn sm" onclick="toast('📧 RFP process initiated for Hanscom FBO.','success')">Start RFP</button>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--amber-lt)">💰</div>
+          <div class="notif-body">
+            <h4>7 leases expiring within 90 days — $3.2M annual revenue at risk</h4>
+            <p>Delta Air Lines, Signature Aviation (FBO), and 5 other agreements expire before September 30, 2026. Renewal decisions required to protect revenue and avoid holdover situations.</p>
+            <div class="notif-meta">
+              <span class="notif-time">Portfolio-level · Updated today</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            <button class="btn sm primary" onclick="showFilteredLeases(null,'expiring','Expiring soon')">View all</button>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--amber-lt)">🛡️</div>
+          <div class="notif-body">
+            <h4>12 COIs due for renewal in next 60 days</h4>
+            <p>Multiple tenants have insurance certificates expiring between now and August 2026. Automated reminders have been sent to 8 tenants. 4 have not responded.</p>
+            <div class="notif-meta">
+              <span class="notif-time">Portfolio-level · 4 non-respondents flagged</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            <button class="btn sm primary" onclick="showScreen('documents',null,'Documents');toast('📋 Filtering to expiring COIs…')">View COIs</button>
+            <button class="btn sm" onclick="toast('📧 Bulk COI renewal reminders sent to all 4.','success')">Remind all</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informational -->
+      <div class="notif-section-label">🔵 Informational</div>
+      <div class="notif-group">
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--teal-lt)">✅</div>
+          <div class="notif-body">
+            <h4>InMotion Entertainment lease commenced — billing activated</h4>
+            <p>New concession lease effective June 15, 2025. Security deposit of $12,000 received and recorded. June billing prorated for 15 days at the agreed concession rate.</p>
+            <div class="notif-meta">
+              <span class="notif-time">Jun 15, 2025 · Concession #CC-2023-0041</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            <button class="btn sm" onclick="toast('📄 Opening InMotion lease details…')">View lease</button>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--teal-lt)">🔄</div>
+          <div class="notif-body">
+            <h4>Oracle Fusion sync complete — June 2025 billing posted</h4>
+            <p>45 approved invoices successfully posted to Oracle Fusion AR. Batch ID: OF-2025-0612. 3 exception items held for review. Total posted: $1,594,240.</p>
+            <div class="notif-meta">
+              <span class="notif-time">Today at 8:42 AM · Oracle Fusion AR</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            <button class="btn sm" onclick="showScreen('billing',null,'Monthly billing')">View billing</button>
+          </div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--blue-lt)">📊</div>
+          <div class="notif-body">
+            <h4>Aviation statistics updated — June 2025 data available</h4>
+            <p>Flight operations data for June 2025 has been loaded from Logan Airport Operations. 14,220 total operations recorded. YoY change: +1.8%. Full report available in Aviation Statistics.</p>
+            <div class="notif-meta">
+              <span class="notif-time">Today at 6:00 AM · Automated import</span>
+            </div>
+          </div>
+          <div class="notif-actions">
+            <button class="btn sm" onclick="showScreen('aviation',null,'Aviation statistics')">View stats</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /screen-notifications -->
+
+  <!-- ── SETTINGS SCREEN ── -->
+  <div class="screen" id="screen-settings">
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1>Settings</h1>
+        <p>System configuration, integrations, notification rules, and user management</p>
+      </div>
+      <div class="page-hdr-actions">
+        <button class="btn primary" onclick="toast('✅ Settings saved successfully.','success')">Save changes</button>
+      </div>
+    </div>
+    <div class="settings-layout">
+      <div class="settings-nav">
+        <div class="settings-nav-item active" onclick="switchSettingsPane('integration',this)">🔗 &nbsp;Integration</div>
+        <div class="settings-nav-item" onclick="switchSettingsPane('notifications',this)">🔔 &nbsp;Notifications</div>
+        <div class="settings-nav-item" onclick="switchSettingsPane('users',this)">👥 &nbsp;Users</div>
+        <div class="settings-nav-item" onclick="switchSettingsPane('system',this)">⚙️ &nbsp;System</div>
+      </div>
+      <div class="settings-panel">
+
+        <!-- Integration pane -->
+        <div class="settings-pane active" id="settings-pane-integration">
+          <h2>Oracle Fusion Integration</h2>
+          <div class="sp-sub">Configure the live connection to Oracle Fusion AR/AP for automated billing and invoice posting.</div>
+          <div class="settings-section">
+            <h3>Connection status</h3>
+            <div class="settings-field">
+              <div><div class="sf-lbl"><span class="status-dot" style="background:var(--green)"></span>Production environment</div><div class="sf-sub">https://massport.fa.us2.oraclecloud.com</div></div>
+              <span class="sf-val" style="color:var(--green);font-weight:600">Connected</span>
+            </div>
+            <div class="settings-field">
+              <div><div class="sf-lbl">AR Module (Accounts Receivable)</div><div class="sf-sub">Invoice posting and receipt tracking</div></div>
+              <span class="sf-val" style="color:var(--green);font-weight:600">Active</span>
+            </div>
+            <div class="settings-field">
+              <div><div class="sf-lbl">AP Module (Accounts Payable)</div><div class="sf-sub">Vendor payments and disbursements</div></div>
+              <span class="sf-val" style="color:var(--ink-soft)">Not configured</span>
+            </div>
+            <div class="settings-field">
+              <div><div class="sf-lbl">GL Segment mapping</div><div class="sf-sub">Cost center and revenue code mapping</div></div>
+              <span class="sf-val">14 mappings active</span>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Sync configuration</h3>
+            <div class="settings-field">
+              <div><div class="sf-lbl">Sync frequency</div><div class="sf-sub">How often ALMS pulls data from Oracle Fusion</div></div>
+              <select style="font-family:var(--sans);font-size:12px;padding:5px 10px;border:1px solid var(--rule-md);border-radius:7px;color:var(--ink);background:var(--page)">
+                <option selected>Every 5 minutes</option>
+                <option>Every 15 minutes</option>
+                <option>Every hour</option>
+                <option>Manual only</option>
+              </select>
+            </div>
+            <div class="settings-field">
+              <div><div class="sf-lbl">Auto-post approved billing</div><div class="sf-sub">Automatically post invoices when approved in ALMS</div></div>
+              <div class="toggle" onclick="this.classList.toggle('off')"></div>
+            </div>
+            <div class="settings-field">
+              <div><div class="sf-lbl">Require dual approval above</div><div class="sf-sub">Require two approvers for invoices above this amount</div></div>
+              <input type="text" value="$100,000" style="width:120px;font-family:var(--sans);font-size:12px;padding:5px 10px;border:1px solid var(--rule-md);border-radius:7px;color:var(--ink);background:var(--page);text-align:right">
+            </div>
+            <div class="settings-field">
+              <div><div class="sf-lbl">Last successful sync</div></div>
+              <span class="sf-val">Today at 10:52 AM — 45 records</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn primary" onclick="toast('🔄 Sync initiated — pulling latest data from Oracle Fusion…')">Sync now</button>
+            <button class="btn" onclick="toast('🔗 Testing Oracle Fusion connection…');setTimeout(()=>toast('✅ Connection verified. Latency: 42ms.','success'),1400)">Test connection</button>
+          </div>
+        </div>
+
+        <!-- Notifications pane -->
+        <div class="settings-pane" id="settings-pane-notifications">
+          <h2>Notification Rules</h2>
+          <div class="sp-sub">Configure when ALMS generates alerts for lease events, expirations, and compliance issues.</div>
+          <div class="settings-section">
+            <h3>Lease expiry alerts</h3>
+            <div class="settings-field"><div><div class="sf-lbl">180-day expiry warning</div><div class="sf-sub">Begin renewal discussions</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="settings-field"><div><div class="sf-lbl">90-day expiry warning</div><div class="sf-sub">Escalate to lease administrator</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="settings-field"><div><div class="sf-lbl">30-day expiry warning</div><div class="sf-sub">Critical — immediate action required</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="settings-field"><div><div class="sf-lbl">Holdover entry notification</div><div class="sf-sub">Alert when lease enters holdover status</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+          </div>
+          <div class="settings-section">
+            <h3>COI &amp; compliance alerts</h3>
+            <div class="settings-field"><div><div class="sf-lbl">COI 90-day warning</div><div class="sf-sub">Send automated renewal reminder to tenant</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="settings-field"><div><div class="sf-lbl">COI 30-day warning</div><div class="sf-sub">Escalate if no renewal received</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="settings-field"><div><div class="sf-lbl">COI expiry billing hold</div><div class="sf-sub">Automatically suspend billing when COI expires</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+          </div>
+          <div class="settings-section">
+            <h3>Billing &amp; financial alerts</h3>
+            <div class="settings-field"><div><div class="sf-lbl">Billing exception alert</div><div class="sf-sub">Alert immediately when exception items require review</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="settings-field"><div><div class="sf-lbl">Oracle Fusion sync failure</div><div class="sf-sub">Alert if sync fails for more than 15 minutes</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="settings-field"><div><div class="sf-lbl">New document uploaded</div><div class="sf-sub">Notify lease administrator when documents are added</div></div><div class="toggle off" onclick="this.classList.toggle('off')"></div></div>
+          </div>
+          <div class="settings-section">
+            <h3>Delivery</h3>
+            <div class="settings-field"><div><div class="sf-lbl">Email notifications</div><div class="sf-sub">adina.okonkwo@massport.com</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="settings-field"><div><div class="sf-lbl">In-app notifications</div><div class="sf-sub">Show alerts in ALMS notification center</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+            <div class="settings-field"><div><div class="sf-lbl">Daily digest email</div><div class="sf-sub">Summary of all open items, sent at 8:00 AM</div></div><div class="toggle" onclick="this.classList.toggle('off')"></div></div>
+          </div>
+        </div>
+
+        <!-- Users pane -->
+        <div class="settings-pane" id="settings-pane-users">
+          <h2>User management</h2>
+          <div class="sp-sub">Manage ALMS user accounts, roles, and access permissions.</div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+            <button class="btn primary" onclick="toast('👤 Opening new user invitation form…')">+ Invite user</button>
+          </div>
+          <div class="settings-section">
+            <h3>Active users</h3>
+            <div class="user-row">
+              <div class="user-avatar-sm" style="background:#007A6A">AO</div>
+              <div class="user-info"><div class="u-name">Adina Okonkwo</div><div class="u-role">adina.okonkwo@massport.com</div></div>
+              <span class="role-badge" style="background:var(--teal-lt);color:var(--teal)">Lease Admin</span>
+              <button class="btn sm" style="margin-left:8px" onclick="toast('✏️ Opening user settings for Adina Okonkwo…')">Edit</button>
+            </div>
+            <div class="user-row">
+              <div class="user-avatar-sm" style="background:#1A56A4">JM</div>
+              <div class="user-info"><div class="u-name">Jared Martinez</div><div class="u-role">jared.martinez@massport.com</div></div>
+              <span class="role-badge" style="background:var(--blue-lt);color:var(--blue)">Finance</span>
+              <button class="btn sm" style="margin-left:8px" onclick="toast('✏️ Opening user settings for Jared Martinez…')">Edit</button>
+            </div>
+            <div class="user-row">
+              <div class="user-avatar-sm" style="background:#5B3FA0">SC</div>
+              <div class="user-info"><div class="u-name">Sarah Chen</div><div class="u-role">sarah.chen@massport.com</div></div>
+              <span class="role-badge" style="background:var(--purple-lt);color:var(--purple)">Legal (read-only)</span>
+              <button class="btn sm" style="margin-left:8px" onclick="toast('✏️ Opening user settings for Sarah Chen…')">Edit</button>
+            </div>
+            <div class="user-row">
+              <div class="user-avatar-sm" style="background:#C97B1A">MW</div>
+              <div class="user-info"><div class="u-name">Marcus Webb</div><div class="u-role">marcus.webb@massport.com</div></div>
+              <span class="role-badge" style="background:var(--amber-lt);color:var(--amber)">Property Mgr</span>
+              <button class="btn sm" style="margin-left:8px" onclick="toast('✏️ Opening user settings for Marcus Webb…')">Edit</button>
+            </div>
+            <div class="user-row">
+              <div class="user-avatar-sm" style="background:#6B7FA0">FT</div>
+              <div class="user-info"><div class="u-name">Finance Team (shared)</div><div class="u-role">finance.reports@massport.com</div></div>
+              <span class="role-badge" style="background:var(--blue-lt);color:var(--blue)">Finance</span>
+              <button class="btn sm" style="margin-left:8px" onclick="toast('✏️ Opening user settings for Finance Team…')">Edit</button>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Role permissions</h3>
+            <div style="overflow-x:auto">
+              <table class="fin-table">
+                <thead><tr><th>Role</th><th>View leases</th><th>Edit leases</th><th>Post billing</th><th>Manage users</th></tr></thead>
+                <tbody>
+                  <tr><td class="td-p">Lease Admin</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                  <tr><td class="td-p">Finance</td><td>✅</td><td>—</td><td>✅</td><td>—</td></tr>
+                  <tr><td class="td-p">Legal (read-only)</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+                  <tr><td class="td-p">Property Mgr</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- System pane -->
+        <div class="settings-pane" id="settings-pane-system">
+          <h2>System preferences</h2>
+          <div class="sp-sub">Locale, date formats, fiscal year settings, and system-wide defaults.</div>
+          <div class="settings-section">
+            <h3>Regional settings</h3>
+            <div class="settings-field"><div><div class="sf-lbl">Timezone</div><div class="sf-sub">Used for all dates and scheduled operations</div></div>
+              <select style="font-family:var(--sans);font-size:12px;padding:5px 10px;border:1px solid var(--rule-md);border-radius:7px;color:var(--ink);background:var(--page)">
+                <option selected>America/New_York (ET)</option>
+                <option>America/Chicago (CT)</option>
+                <option>UTC</option>
+              </select>
+            </div>
+            <div class="settings-field"><div><div class="sf-lbl">Date format</div></div>
+              <select style="font-family:var(--sans);font-size:12px;padding:5px 10px;border:1px solid var(--rule-md);border-radius:7px;color:var(--ink);background:var(--page)">
+                <option selected>MMM D, YYYY (Jan 1, 2026)</option>
+                <option>MM/DD/YYYY</option>
+                <option>YYYY-MM-DD</option>
+              </select>
+            </div>
+            <div class="settings-field"><div><div class="sf-lbl">Currency</div></div><span class="sf-val">USD — US Dollar</span></div>
+          </div>
+          <div class="settings-section">
+            <h3>Fiscal year</h3>
+            <div class="settings-field"><div><div class="sf-lbl">Fiscal year start</div><div class="sf-sub">Massport fiscal year beginning</div></div>
+              <select style="font-family:var(--sans);font-size:12px;padding:5px 10px;border:1px solid var(--rule-md);border-radius:7px;color:var(--ink);background:var(--page)">
+                <option selected>July 1 (FY runs Jul–Jun)</option>
+                <option>January 1 (Calendar year)</option>
+                <option>October 1</option>
+              </select>
+            </div>
+            <div class="settings-field"><div><div class="sf-lbl">Current fiscal year</div></div><span class="sf-val">FY 2025–2026</span></div>
+          </div>
+          <div class="settings-section">
+            <h3>Defaults</h3>
+            <div class="settings-field"><div><div class="sf-lbl">Default holdover rate</div><div class="sf-sub">Applied when lease enters holdover without a negotiated rate</div></div>
+              <input type="text" value="110% of prior rate" style="width:160px;font-family:var(--sans);font-size:12px;padding:5px 10px;border:1px solid var(--rule-md);border-radius:7px;color:var(--ink);background:var(--page);text-align:right">
+            </div>
+            <div class="settings-field"><div><div class="sf-lbl">COI grace period</div><div class="sf-sub">Days after COI expiry before billing is suspended</div></div>
+              <input type="text" value="0 days" style="width:80px;font-family:var(--sans);font-size:12px;padding:5px 10px;border:1px solid var(--rule-md);border-radius:7px;color:var(--ink);background:var(--page);text-align:right">
+            </div>
+            <div class="settings-field"><div><div class="sf-lbl">Expiry pipeline warning threshold</div><div class="sf-sub">Days before expiry to flag in the dashboard</div></div>
+              <input type="text" value="90 days" style="width:80px;font-family:var(--sans);font-size:12px;padding:5px 10px;border:1px solid var(--rule-md);border-radius:7px;color:var(--ink);background:var(--page);text-align:right">
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Data &amp; maintenance</h3>
+            <div class="settings-field"><div><div class="sf-lbl">Audit log</div><div class="sf-sub">All user actions logged for 7 years</div></div><span class="sf-val">1,247 entries</span></div>
+            <div class="settings-field"><div><div class="sf-lbl">Export full database</div><div class="sf-sub">Download all leases, documents, and billing history</div></div>
+              <button class="btn sm" onclick="toast('📥 Full database export initiated — you will receive an email when ready.')">Export</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /screen-settings -->
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ══ LEASE DETAIL MODAL — tabbed ══ -->
+<div class="modal-veil" id="modal-lease-detail" onclick="handleModalClick(event,'lease-detail')">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <h2>Delta Air Lines — Terminal A, Gates A1–A12</h2>
+        <p>Airline use agreement · Logan International Airport · Lease #AV-2019-0042</p>
+      </div>
+      <span class="status-badge sb-expiring" style="flex-shrink:0;margin-top:4px">Expiring</span>
+      <button class="modal-close" onclick="closeModal('lease-detail')">✕</button>
+    </div>
+    <!-- Tab bar -->
+    <div class="modal-tabs" style="padding:0 26px">
+      <div class="modal-tab active" onclick="switchModalTab('overview',this)">Overview</div>
+      <div class="modal-tab" onclick="switchModalTab('documents',this)">Documents</div>
+      <div class="modal-tab" onclick="switchModalTab('financials',this)">Financials</div>
+      <div class="modal-tab" onclick="switchModalTab('history',this)">History</div>
+    </div>
+    <div class="modal-body">
+
+      <!-- ── OVERVIEW TAB ── -->
+      <div class="modal-tab-pane active" id="tab-overview">
+        <div class="modal-grid">
+          <div class="modal-field"><div class="mf-label">Tenant</div><div class="mf-val">Delta Air Lines (DL)</div></div>
+          <div class="modal-field"><div class="mf-label">Lease type</div><div class="mf-val">Airline use agreement</div></div>
+          <div class="modal-field"><div class="mf-label">Leased space</div><div class="mf-val">Terminal A, Gates A1–A12</div></div>
+          <div class="modal-field"><div class="mf-label">Square footage</div><div class="mf-val">42,800 sq ft</div></div>
+          <div class="modal-field"><div class="mf-label">Commencement</div><div class="mf-val">January 1, 2019</div></div>
+          <div class="modal-field"><div class="mf-label">Expiration</div><div class="mf-val" style="color:var(--red)">December 31, 2026 · 194 days remaining</div></div>
+          <div class="modal-field"><div class="mf-label">Monthly base rate</div><div class="mf-val">Per executed agreement</div></div>
+          <div class="modal-field"><div class="mf-label">Security deposit</div><div class="mf-val">Letter of credit · Active</div></div>
+          <div class="modal-field"><div class="mf-label">COI status</div><div class="mf-val" style="color:var(--green)">Current · Exp. Feb 2026</div></div>
+          <div class="modal-field"><div class="mf-label">Renewal option</div><div class="mf-val">2 × 5-year options · Notice required by Sep 30, 2026</div></div>
+        </div>
+        <div class="modal-section">Upcoming critical dates</div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--amber)"></div><div class="tl-text"><strong>Renewal notice deadline</strong> — September 30, 2026. Tenant must exercise option or lease expires.</div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--teal)"></div><div class="tl-text"><strong>COI renewal</strong> — February 2026. Automated notice will be sent ahead of expiration.</div></div>
+        <div class="tl-item"><div class="tl-dot" style="background:var(--red)"></div><div class="tl-text"><strong>Lease expiration</strong> — December 31, 2026. If option not exercised, space enters available pipeline.</div></div>
+        <div style="display:flex;gap:8px;margin-top:18px">
+          <button class="btn sm primary" onclick="editLease()">Edit lease</button>
+          <button class="btn sm" onclick="switchModalTab('documents',document.querySelectorAll('.modal-tab')[1])">View documents</button>
+          <button class="btn sm" onclick="generateAbstract()">Generate abstract</button>
+          <button class="btn sm" onclick="logAmendment()">Log amendment</button>
+        </div>
+      </div>
+
+      <!-- ── DOCUMENTS TAB ── -->
+      <div class="modal-tab-pane" id="tab-documents">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-size:12px;color:var(--ink-soft)">3 documents on file for Lease #AV-2019-0042</div>
+          <button class="btn sm" onclick="toast('📤 Opening upload dialog for this lease…')">Upload document</button>
+        </div>
+        <table class="fin-table">
+          <thead><tr><th>Document</th><th>Type</th><th>Date</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="td-p">Lease Agreement #AV-2019-0042.pdf</div><div style="font-size:11px;color:var(--ink-soft)">Terminal A, Gates A1–A12 · Fully executed</div></td>
+              <td>Lease agreement</td><td>Jan 1, 2019</td>
+              <td><span class="doc-badge exec">Executed</span></td>
+              <td><div style="display:flex;gap:6px"><button class="btn sm" onclick="toast('📄 Opening lease agreement PDF…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="td-p">COI Certificate — Delta Air Lines.pdf</div><div style="font-size:11px;color:var(--ink-soft)">Policy #DL-COI-2025-0214 · Liberty Mutual · Exp. Feb 14, 2026</div></td>
+              <td>COI</td><td>Feb 14, 2025</td>
+              <td><span class="doc-badge curr">Current</span></td>
+              <td><div style="display:flex;gap:6px"><button class="btn sm" onclick="toast('🛡️ Opening COI certificate…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="td-p">Amendment #1 — Terminal Expansion.pdf</div><div style="font-size:11px;color:var(--ink-soft)">Gate A3 sq ft adjustment, effective Apr 8, 2022</div></td>
+              <td>Amendment</td><td>Apr 8, 2022</td>
+              <td><span class="doc-badge exec">Executed</span></td>
+              <td><div style="display:flex;gap:6px"><button class="btn sm" onclick="toast('📝 Opening amendment PDF…')">Open</button><button class="btn sm" onclick="toast('📥 Downloading PDF…')">Download</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="td-p">Renewal Option Notice (draft).docx</div><div style="font-size:11px;color:var(--ink-soft)">Draft notice for 5-year renewal option — requires execution</div></td>
+              <td>Notice</td><td>Jun 10, 2025</td>
+              <td><span class="doc-badge draft">Draft</span></td>
+              <td><div style="display:flex;gap:6px"><button class="btn sm primary" onclick="toast('✍️ Opening draft renewal notice for editing…')">Edit</button><button class="btn sm" onclick="toast('📧 Sending renewal notice to Delta Air Lines for review.','success')">Send</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── FINANCIALS TAB ── -->
+      <div class="modal-tab-pane" id="tab-financials">
+        <div class="fin-kpi">
+          <div class="fin-kpi-card">
+            <div class="fk-val">$847,000</div>
+            <div class="fk-lbl">Est. monthly base rate</div>
+          </div>
+          <div class="fin-kpi-card">
+            <div class="fk-val" style="color:var(--teal)">$10.16M</div>
+            <div class="fk-lbl">Annual lease value (est.)</div>
+          </div>
+          <div class="fin-kpi-card">
+            <div class="fk-val">+3.2%</div>
+            <div class="fk-lbl">Last CPI adjustment (Jan 2025)</div>
+          </div>
+        </div>
+        <div class="modal-section">Rate &amp; escalation schedule</div>
+        <table class="fin-table" style="margin-bottom:18px">
+          <thead><tr><th>Period</th><th>Rate basis</th><th>Escalation</th><th>Effective date</th></tr></thead>
+          <tbody>
+            <tr><td class="td-p">Jan 2025 – Dec 2025</td><td>Per executed agreement</td><td>+3.2% CPI (Jan)</td><td>Jan 1, 2025</td></tr>
+            <tr><td class="td-p">Jan 2024 – Dec 2024</td><td>Per executed agreement</td><td>+4.1% CPI (Jan)</td><td>Jan 1, 2024</td></tr>
+            <tr><td class="td-p">Jan 2023 – Dec 2023</td><td>Per executed agreement</td><td>+6.8% CPI (Jan)</td><td>Jan 1, 2023</td></tr>
+            <tr><td class="td-p">Jan 2019 – Dec 2022</td><td>Per executed agreement</td><td>Fixed schedule</td><td>Jan 1, 2019</td></tr>
+          </tbody>
+        </table>
+        <div class="modal-section">Recent payment history</div>
+        <table class="fin-table" style="margin-bottom:18px">
+          <thead><tr><th>Period</th><th>Amount invoiced</th><th>Amount received</th><th>Date received</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="td-p">Jun 2025</td><td>$847,000</td><td>—</td><td>—</td><td><span class="status-badge sb-pending">Pending</span></td></tr>
+            <tr><td class="td-p">May 2025</td><td>$847,000</td><td>$847,000</td><td>May 5, 2025</td><td><span class="status-badge sb-active">Paid</span></td></tr>
+            <tr><td class="td-p">Apr 2025</td><td>$847,000</td><td>$847,000</td><td>Apr 4, 2025</td><td><span class="status-badge sb-active">Paid</span></td></tr>
+            <tr><td class="td-p">Mar 2025</td><td>$847,000</td><td>$847,000</td><td>Mar 5, 2025</td><td><span class="status-badge sb-active">Paid</span></td></tr>
+            <tr><td class="td-p">Feb 2025</td><td>$836,400</td><td>$836,400</td><td>Feb 4, 2025</td><td><span class="status-badge sb-active">Paid</span></td></tr>
+          </tbody>
+        </table>
+        <div class="modal-section">Security deposit</div>
+        <table class="fin-table">
+          <thead><tr><th>Type</th><th>Reference</th><th>Amount</th><th>Issuing bank</th><th>Expiry</th></tr></thead>
+          <tbody>
+            <tr><td class="td-p">Letter of credit</td><td>LOC-BOA-2019-0042</td><td>$2,500,000</td><td>Bank of America</td><td>Dec 31, 2027 · Active</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── HISTORY TAB ── -->
+      <div class="modal-tab-pane" id="tab-history">
+        <div class="modal-section">Amendment &amp; activity log</div>
+        <div class="history-list">
+          <div class="hist-item">
+            <div class="hist-date">Jun 12, 2025</div>
+            <div class="hist-dot" style="background:var(--amber)"></div>
+            <div class="hist-body">
+              <h4>Square footage adjustment — Gate A3</h4>
+              <p>Gate A3 reduced from 4,200 to 3,800 sq ft following terminal renovation. Billing prorated for remainder of June. Monthly base rate adjusted accordingly.</p>
+              <div class="hist-by">By Adina Okonkwo · Lease Admin</div>
+            </div>
+          </div>
+          <div class="hist-item">
+            <div class="hist-date">Jan 1, 2025</div>
+            <div class="hist-dot" style="background:var(--teal)"></div>
+            <div class="hist-body">
+              <h4>Annual CPI escalation applied — +3.2%</h4>
+              <p>Rent escalation applied per Section 8.2 of the lease agreement. New monthly rate effective January 1, 2025. Oracle Fusion AR updated automatically.</p>
+              <div class="hist-by">System · Automated · Confirmed by Jared Martinez</div>
+            </div>
+          </div>
+          <div class="hist-item">
+            <div class="hist-date">Feb 14, 2025</div>
+            <div class="hist-dot" style="background:var(--green)"></div>
+            <div class="hist-body">
+              <h4>COI renewed — Certificate #DL-COI-2025-0214</h4>
+              <p>Certificate of Insurance received from Liberty Mutual. Policy covers $100M general liability. Expiry February 14, 2026. Document uploaded and verified.</p>
+              <div class="hist-by">By Marcus Webb · Property Manager</div>
+            </div>
+          </div>
+          <div class="hist-item">
+            <div class="hist-date">Apr 8, 2022</div>
+            <div class="hist-dot" style="background:var(--blue)"></div>
+            <div class="hist-body">
+              <h4>Amendment #1 executed — Terminal expansion adjustment</h4>
+              <p>Amendment to original lease reflecting terminal A expansion. Additional common area allocated. Lease term unchanged. Mutual agreement signed by both parties.</p>
+              <div class="hist-by">By Adina Okonkwo · Lease Admin · Countersigned by Delta Legal</div>
+            </div>
+          </div>
+          <div class="hist-item">
+            <div class="hist-date">Jan 1, 2019</div>
+            <div class="hist-dot" style="background:var(--teal)"></div>
+            <div class="hist-body">
+              <h4>Lease executed — initial term began</h4>
+              <p>Lease Agreement #AV-2019-0042 fully executed. 7-year initial term commenced. Security deposit (LOC) received from Bank of America. Billing activated in Oracle Fusion.</p>
+              <div class="hist-by">By Christine Lau · Previous Lease Admin</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ NEW LEASE MODAL ══ -->
+<div class="modal-veil" id="modal-new-lease" onclick="handleModalClick(event,'new-lease')">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <h2>New lease agreement</h2>
+        <p>Complete all required fields. The lease will be saved as a draft until executed.</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('new-lease')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section">Tenant &amp; lease type</div>
+      <div class="form-row">
+        <div class="form-field"><label>Tenant name</label><input type="text" placeholder="e.g. Delta Air Lines"></div>
+        <div class="form-field"><label>Lease type</label>
+          <select>
+            <option>Airline use agreement</option><option>Concession agreement</option>
+            <option>Ground lease</option><option>FBO agreement</option>
+            <option>Cargo facility lease</option><option>Office / administrative</option><option>Storage</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>IATA / identifier</label><input type="text" placeholder="e.g. DL"></div>
+        <div class="form-field"><label>Facility</label>
+          <select>
+            <option>Boston Logan International Airport</option><option>Hanscom Field</option>
+            <option>Worcester Regional Airport</option><option>Real Estate — East Boston</option>
+            <option>Real Estate — South Boston</option><option>Real Estate — Charlestown</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-section">Space &amp; term</div>
+      <div class="form-row">
+        <div class="form-field"><label>Space / unit description</label><input type="text" placeholder="e.g. Terminal A, Gates A1–A4"></div>
+        <div class="form-field"><label>Square footage</label><input type="text" placeholder="e.g. 18,400"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Commencement date</label><input type="date"></div>
+        <div class="form-field"><label>Expiration date</label><input type="date"></div>
+      </div>
+      <div class="form-section">Financial terms</div>
+      <div class="form-row">
+        <div class="form-field"><label>Base rent structure</label>
+          <select><option>Fixed monthly rate</option><option>Per sq ft / month</option><option>Percentage of revenue (POR)</option><option>Landing fee schedule</option><option>Ground rent — fixed</option></select>
+        </div>
+        <div class="form-field"><label>Escalation clause</label>
+          <select><option>None</option><option>Annual CPI adjustment</option><option>Fixed % per year</option><option>Per negotiated schedule</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Security deposit type</label>
+          <select><option>None</option><option>Cash deposit</option><option>Letter of credit</option><option>Guarantor agreement</option></select>
+        </div>
+        <div class="form-field"><label>Insurance requirement</label>
+          <select><option>Standard airline COI</option><option>Standard concession COI</option><option>Custom — specify in notes</option><option>None</option></select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field"><label>Notes / special terms</label><textarea placeholder="Any non-standard terms negotiated for this agreement…"></textarea></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button class="btn primary" onclick="saveLeaseAsDraft()">Save as draft</button>
+        <button class="btn" onclick="closeModal('new-lease')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── TOAST ── */
+let _tt;
+function toast(msg,type='info',dur=3200){
+  let el=document.getElementById('_toast');
+  if(!el){
+    el=document.createElement('div');el.id='_toast';
+    Object.assign(el.style,{
+      position:'fixed',bottom:'22px',right:'22px',zIndex:'9999',
+      padding:'11px 18px',borderRadius:'8px',fontSize:'12px',fontWeight:'500',
+      maxWidth:'360px',lineHeight:'1.45',boxShadow:'0 4px 20px rgba(15,30,54,.18)',
+      transition:'opacity .25s,transform .25s',opacity:'0',transform:'translateY(8px)',
+      pointerEvents:'none',fontFamily:'var(--sans)'
+    });
+    document.body.appendChild(el);
+  }
+  const c={info:{bg:'#1A2B4A'},success:{bg:'#2D7A4F'},warn:{bg:'#C97B1A'},error:{bg:'#B83232'}};
+  el.style.background=(c[type]||c.info).bg;
+  el.style.border='1px solid rgba(255,255,255,.1)';el.style.color='#fff';
+  el.textContent=msg;
+  clearTimeout(_tt);
+  requestAnimationFrame(()=>{el.style.opacity='1';el.style.transform='translateY(0)'});
+  _tt=setTimeout(()=>{el.style.opacity='0';el.style.transform='translateY(8px)'},dur);
+}
+
+/* ── NAVIGATION ── */
+function showScreen(id,el,label){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.getElementById('screen-label').textContent=label||id;
+}
+
+/* ── FILTERS ── */
+const fmap={
+  'All':()=>true,
+  'Aviation':td=>['Airline use','Cargo','FBO'].some(t=>td.includes(t)),
+  'Real Estate':td=>td.includes('Ground lease'),
+  'Concessions':td=>td.includes('Concession'),
+  'Expiring':(_,b)=>b&&b.classList.contains('sb-expiring'),
+  'Holdover':(_,b)=>b&&b.classList.contains('sb-holdover'),
+};
+function setFilter(el){
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const fn=fmap[el.textContent.trim()];
+  if(!fn)return;
+  document.querySelectorAll('#screen-leases tbody tr').forEach(row=>{
+    const tc=row.cells[2]?row.cells[2].textContent:'';
+    const badge=row.querySelector('.status-badge');
+    row.style.display=fn(tc,badge)?'':'none';
+  });
+}
+
+/* ── MODALS ── */
+function openModal(id){document.getElementById('modal-'+id).classList.add('open');document.body.style.overflow='hidden'}
+function closeModal(id){document.getElementById('modal-'+id).classList.remove('open');document.body.style.overflow=''}
+function handleModalClick(e,id){if(e.target===document.getElementById('modal-'+id))closeModal(id)}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal-veil.open').forEach(m=>m.classList.remove('open'));
+    document.body.style.overflow='';
+  }
+});
+
+/* ── GIS MAP ── */
+let mapScale=1;
+function mapZoom(d){
+  const s=document.getElementById('terminal-map');if(!s)return;
+  mapScale=Math.min(2.8,Math.max(0.7,mapScale+d*0.22));
+  s.style.transform=`scale(${mapScale})`;s.style.transformOrigin='center center';s.style.transition='transform .25s';
+  if(mapScale>=2.8)toast('Maximum zoom reached','info',1500);
+}
+function mapReset(){
+  const s=document.getElementById('terminal-map');if(!s)return;
+  mapScale=1;s.style.transform='';toast('Map view reset','info',1400);
+}
+function switchTerminal(t){
+  document.querySelectorAll('.terminal-btn').forEach(b=>{
+    const a=b.dataset.t===t;
+    b.style.background=a?'var(--ink)':'';b.style.color=a?'#fff':'';b.style.borderColor=a?'var(--ink)':'';
+  });
+  if(t!=='A')toast(`Terminal ${t} floor plan loading… (integration in progress)`,'warn',3500);
+}
+
+/* Tooltip */
+const tip=document.getElementById('map-tooltip');
+document.querySelectorAll('.space-rect').forEach(r=>{
+  r.addEventListener('mouseenter',function(){
+    document.getElementById('tt-name').textContent=this.dataset.name||'—';
+    document.getElementById('tt-unit').textContent=this.dataset.unit||'—';
+    document.getElementById('tt-sqft').textContent=this.dataset.sqft?this.dataset.sqft+' sq ft':'—';
+    document.getElementById('tt-status').textContent=this.dataset.status||'—';
+    tip.classList.add('show');
+  });
+  r.addEventListener('mousemove',function(e){
+    const a=document.querySelector('.gis-map').getBoundingClientRect();
+    let x=e.clientX-a.left+14,y=e.clientY-a.top+14;
+    if(x+200>a.width)x=e.clientX-a.left-210;
+    if(y+110>a.height)y=e.clientY-a.top-115;
+    tip.style.left=x+'px';tip.style.top=y+'px';
+  });
+  r.addEventListener('mouseleave',()=>tip.classList.remove('show'));
+});
+
+/* GIS click detail */
+const SD={
+  'delta-gates-1-4':{name:'Delta Air Lines',unit:'Gates A1–A4',sqft:'18,400',type:'Airline use',status:'Active',exp:'Dec 31, 2026',rate:'Per executed agreement',coi:'Current · Exp. Feb 2026',sc:'sb-expiring'},
+  'united-gates-5-8':{name:'United Airlines',unit:'Gates A5–A8',sqft:'16,200',type:'Airline use',status:'Active',exp:'Aug 31, 2029',rate:'Per executed agreement',coi:'Current',sc:'sb-active'},
+  'dunkin-a112':{name:"Dunkin'",unit:'Unit A-112',sqft:'1,240',type:'Concession — F&B',status:'Active',exp:'Mar 14, 2027',rate:'Fixed + % of revenue',coi:'Current',sc:'sb-active'},
+  'vacant-a115':{name:'Vacant',unit:'Unit A-115',sqft:'1,180',type:'Concession — available',status:'Available',exp:'—',rate:'—',coi:'N/A',sc:'sb-pending'},
+  'amerairlines-holdover':{name:'American Airlines',unit:'Gates A9–A12',sqft:'24,400',type:'Airline use',status:'Holdover — action needed',exp:'Expired Jun 30, 2025',rate:'Holdover rate (110%)',coi:'Current',sc:'sb-holdover'},
+  'cargo-north':{name:'Massport Cargo Partners LLC',unit:'Cargo Zone A',sqft:'28,000',type:'Cargo facility',status:'Active',exp:'Aug 31, 2030',rate:'Per cargo facility agreement',coi:'Current',sc:'sb-active'},
+  'hudson-c8':{name:'Hudson Group',unit:'Unit A-220',sqft:'2,180',type:'Concession — Retail',status:'Expiring soon',exp:'Jan 31, 2026',rate:'Fixed monthly',coi:'Expired — hold',sc:'sb-expiring'},
+  'inmotion-pending':{name:'InMotion Entertainment',unit:'Unit A-222',sqft:'980',type:'Concession — Retail',status:'Pending execution',exp:'Oct 31, 2028',rate:'Per draft agreement',coi:'Pending',sc:'sb-pending'},
+  'airline-offices':{name:'Various airline tenants',unit:'Office suites A-301–A-318',sqft:'14,400',type:'Office / admin',status:'Active (multiple)',exp:'Various',rate:'Per individual agreements',coi:'Various',sc:'sb-active'},
+  'storage-zone':{name:'Massport Operations',unit:'Storage Zone A',sqft:'6,200',type:'Common area',status:'Massport-managed',exp:'N/A',rate:'N/A',coi:'N/A',sc:'sb-pending'},
+};
+function selectSpace(id){
+  const d=SD[id];if(!d)return;
+  document.getElementById('gis-detail').innerHTML=`
+    <h4>${d.name}</h4><div class="gd-sub">${d.type}</div>
+    <div class="gd-row"><span class="gd-lbl">Unit / space</span><span class="gd-val">${d.unit}</span></div>
+    <div class="gd-row"><span class="gd-lbl">Square footage</span><span class="gd-val">${d.sqft} sq ft</span></div>
+    <div class="gd-row"><span class="gd-lbl">Status</span><span class="gd-val"><span class="status-badge ${d.sc}">${d.status}</span></span></div>
+    <div class="gd-row"><span class="gd-lbl">Expiration</span><span class="gd-val">${d.exp}</span></div>
+    <div class="gd-row"><span class="gd-lbl">Rate basis</span><span class="gd-val">${d.rate}</span></div>
+    <div class="gd-row"><span class="gd-lbl">COI status</span><span class="gd-val">${d.coi}</span></div>
+    <div style="margin-top:12px">
+      <button class="btn sm primary" style="width:100%;justify-content:center" onclick="openModal('lease-detail')">View full lease →</button>
+    </div>
+  `;
+}
+
+/* ── ALL BUTTON ACTIONS ── */
+function exportLeases(){toast('📥 Preparing CSV export for 48 leases…');setTimeout(()=>toast('✅ leases_export_jun2025.csv downloaded','success'),2200)}
+function saveLeaseAsDraft(){closeModal('new-lease');toast('✅ Lease saved as draft — #AV-2025-0061. Assign commencement date to activate.','success',4000)}
+function editLease(){closeModal('lease-detail');toast('✏️ Opening lease editor for Delta Air Lines — Lease #AV-2019-0042…');setTimeout(()=>toast('ℹ️ Edit mode requires lease administrator permissions. Request sent.','warn',4000),1600)}
+function viewDocuments(){toast('📂 Loading 3 documents for Lease #AV-2019-0042…');setTimeout(()=>toast('✅ Opened: Lease Agreement (PDF), COI Certificate, Amendment #1','success'),1800)}
+function generateAbstract(){toast('📄 Generating lease abstract PDF…');setTimeout(()=>toast('✅ abstract_delta_AV-2019-0042.pdf ready — 4 pages','success'),2400)}
+function logAmendment(){closeModal('lease-detail');toast('📝 Amendment log opened for Lease #AV-2019-0042.')}
+function previewBillingReport(){toast('📊 Opening billing preview for June 2025…');setTimeout(()=>toast('✅ Preview ready. 45 approved · 3 pending review.','success'),1800)}
+function postToOracle(){toast('🔄 Posting 45 approved invoices to Oracle Fusion AR…');setTimeout(()=>toast('✅ 45 invoices posted. Batch ID: OF-2025-0612. 3 items held.','success',5000),2200)}
+function reviewExceptions(){toast('⚠️ 3 exceptions require review: American holdover, Hudson COI hold, InMotion proration.','warn',4000)}
+function postApproved(){toast('🔄 Posting 42 pre-approved items…');setTimeout(()=>toast('✅ 42 invoices posted. Batch ID: OF-2025-0612-A.','success',4000),1800)}
+function exportFlightData(){toast('📥 Exporting 2024 flight statistics…');setTimeout(()=>toast('✅ aviation_stats_2024.xlsx downloaded','success'),2000)}
+function enterFlightData(){toast('✈️ Opening flight data entry form for Logan International — Jul 2025…')}
+function runReport(n){toast(`🔄 Generating: ${n}…`);setTimeout(()=>toast(`✅ ${n} complete — ready to download or share.`,'success'),2200)}
+function runRecentReport(n){toast(`🔄 Re-running: ${n}…`);setTimeout(()=>toast(`✅ ${n} updated — results as of June 16, 2025.`,'success'),2000)}
+function buildCustomReport(){toast('🛠️ Custom report builder opening… Select fields, filters, and output format to begin.')}
+function openDocuments(){toast('📂 Documents — 24 files indexed across 48 active leases.')}
+function openNotifications(){toast('🔔 4 notifications: 2 COI expirations, 1 holdover escalation, 1 lease pending countersignature.','warn',4500)}
+function openSettings(){toast('⚙️ Settings — Oracle Fusion sync, user permissions, notification rules.')}
+
+/* ── MODAL TABS ── */
+function switchModalTab(id, el) {
+  document.querySelectorAll('.modal-tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+/* ── SETTINGS PANES ── */
+function switchSettingsPane(id, el) {
+  document.querySelectorAll('.settings-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.settings-nav-item').forEach(n => n.classList.remove('active'));
+  const pane = document.getElementById('settings-pane-' + id);
+  if (pane) pane.classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+/* ── FILTERED LEASE VIEW (Expiring / Holdover sub-nav) ── */
+function showFilteredLeases(el, filter, label) {
+  showScreen('leases', el, label);
+  // Remove any existing banner
+  const existing = document.getElementById('lease-filter-banner');
+  if (existing) existing.remove();
+  if (filter === 'all') return;
+
+  // Apply filter to table rows
+  const isCls = filter === 'expiring' ? 'sb-expiring' : 'sb-holdover';
+  document.querySelectorAll('#screen-leases tbody tr').forEach(row => {
+    const badge = row.querySelector('.status-badge');
+    row.style.display = badge && badge.classList.contains(isCls) ? '' : 'none';
+  });
+
+  // Insert contextual banner
+  const color = filter === 'expiring' ? 'amber' : 'red';
+  const count = filter === 'expiring' ? 7 : 2;
+  const desc  = filter === 'expiring'
+    ? `${count} leases expiring within 90 days — renew or let expire before deadline`
+    : `${count} leases in holdover — legal exposure growing daily`;
+  const banner = document.createElement('div');
+  banner.id = 'lease-filter-banner';
+  banner.className = `filter-banner ${color}`;
+  banner.innerHTML = `
+    <div>
+      <div class="fb-txt">${label}</div>
+      <div class="fb-sub">${desc}</div>
+    </div>
+    <div class="fb-clear" onclick="clearLeaseFilter()">Show all leases ✕</div>
+  `;
+  const hdr = document.querySelector('#screen-leases .page-hdr');
+  hdr.insertAdjacentElement('afterend', banner);
+}
+
+function clearLeaseFilter() {
+  const banner = document.getElementById('lease-filter-banner');
+  if (banner) banner.remove();
+  document.querySelectorAll('#screen-leases tbody tr').forEach(r => r.style.display = '');
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.filter-tab').classList.add('active');
+}
+
+/* ── DOCUMENT FILTER ── */
+function setDocFilter(el, type) {
+  document.querySelectorAll('.filters .filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#doc-tbody tr').forEach(row => {
+    row.style.display = (type === 'All' || row.dataset.type === type) ? '' : 'none';
+  });
+}
+
+/* ── OVERRIDE old admin nav functions — now handled by showScreen ── */
+function openDocuments(){showScreen('documents',null,'Documents')}
+function openNotifications(){showScreen('notifications',null,'Notifications')}
+function openSettings(){showScreen('settings',null,'Settings')}
+
+/* ── GIS TERMINAL SWITCHER with placeholder maps ── */
+const _terminalData = {
+  B: {label:'Terminal B — JetBlue Airways Hub',desc:'Gates B1–B24 · 74,200 sq ft · Active · Exp. Mar 2028'},
+  C: {label:'Terminal C — Mixed Use',desc:'Retail concessions, FBO, cargo offices · 12 units'},
+  E: {label:'Terminal E — International',desc:'International arrivals/departures · Customs & Border Protection'},
+};
+function switchTerminal(t) {
+  document.querySelectorAll('.terminal-btn').forEach(b => {
+    const a = b.dataset.t === t;
+    b.style.background = a ? 'var(--ink)' : '';
+    b.style.color = a ? '#fff' : '';
+    b.style.borderColor = a ? 'var(--ink)' : '';
+  });
+  const svg = document.getElementById('terminal-map');
+  const mapArea = document.querySelector('.gis-map');
+  // Remove any existing placeholder
+  const ph = document.getElementById('terminal-ph');
+  if (ph) ph.remove();
+  if (t === 'A') {
+    svg.style.display = '';
+    document.querySelector('.map-legend').style.display = '';
+    return;
+  }
+  // Show placeholder for other terminals
+  svg.style.display = 'none';
+  document.querySelector('.map-legend').style.display = 'none';
+  const d = _terminalData[t] || {};
+  const placeholder = document.createElement('div');
+  placeholder.id = 'terminal-ph';
+  placeholder.className = 'terminal-placeholder';
+  placeholder.innerHTML = `
+    <div style="font-size:48px;opacity:.3">🗺️</div>
+    <h3>TERMINAL ${t}</h3>
+    <p><strong>${d.label||''}</strong></p>
+    <p>${d.desc||''}</p>
+    <p style="margin-top:8px;opacity:.6">Full floor plan integration in progress.<br>Data available — visual map coming Q3 2025.</p>
+    <button class="btn sm primary" style="margin-top:8px" onclick="toast('📋 Terminal ${t} lease data loaded in Lease Portfolio.','success');showScreen('leases',null,'Lease portfolio')">View in Lease Portfolio →</button>
+  `;
+  mapArea.appendChild(placeholder);
+}
+
+</script>
+</body>
+</html>
