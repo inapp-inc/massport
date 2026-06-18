@@ -622,8 +622,8 @@ h2.sec-title {
         <div class="stat-lbl">Longest ground lease terms in the Real Estate portfolio — stable footprint, very different from Aviation's constantly changing spaces</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-num teal" style="font-size:26px">GovCloud</div>
-        <div class="stat-lbl">Confirmed deployment target — FedRAMP-certified GovCloud (Azure Government or AWS GovCloud)</div>
+        <div class="stat-num teal" style="font-size:26px">Deployment</div>
+        <div class="stat-lbl">Deployment target — Cloud (AWS or Azure - FedRamp certified)preferred for eventual SaaSification.</div>
       </div>
     </div>
   </div>
@@ -647,8 +647,8 @@ h2.sec-title {
     </div>
     <div class="problem-cell">
       <div class="problem-num" style="color:var(--ink-soft);font-size:32px;line-height:1.3">One<br>person</div>
-      <h3>Crystal Reports bottleneck</h3>
-      <p>Only one person on the Aviation team can run Crystal Reports. Nobody in the Real Estate group can use it at all. Business reporting is gated behind a single specialist — a single point of failure for the whole team.</p>
+      <h3>Static reporting mechanism</h3>
+      <p>Currently Crystal Reports are used, which is static in nature. It doesn't allow a good level of flexibility that is needed for different stakeholders.</p>
     </div>
     <div class="problem-cell">
       <div class="problem-num teal" style="font-size:32px;line-height:1.3">No GIS<br>for RE</div>
@@ -663,7 +663,7 @@ h2.sec-title {
     <div class="problem-cell">
       <div class="problem-num" style="color:var(--red);font-size:32px;line-height:1.3">Stop-<br>gap</div>
       <h3>Current upgrade is only a holdover</h3>
-      <p>Kelar is performing an upgrade right now — but only to extend the system's life for a few more years. Massport's stated intent is full replacement. The system's high customization has made finding a commercial substitute difficult. Confirmed during discovery: the current system runs on-premises on Adobe ColdFusion and Tomcat; the replacement is confirmed to deploy on FedRAMP-certified GovCloud.</p>
+      <p>Kelar is performing an upgrade right now — but only to extend the system's life for a few more years. Massport's stated intent is full replacement. The system's high customization has made finding a commercial substitute difficult. Confirmed during discovery: the current system runs on-premises on Adobe ColdFusion and Tomcat; the replacement is to be deployed on cloud.</p>
     </div>
   </div>
 </section>
@@ -685,6 +685,14 @@ h2.sec-title {
       </div>
       <div class="arch-tag core">All phases depend on this</div>
     </div>
+        <div class="arch-row optional">
+      <div class="arch-phase opt">Core</div>
+      <div class="arch-main">
+        <div class="arch-name">Multi-tenant solution</div>
+        <div class="arch-desc">Future licensing possibilites for other port authorities and similar agencies.</div>
+      </div>
+      <div class="arch-tag opt">Architecture</div>
+    </div>
     <div class="arch-row">
       <div class="arch-phase core">MVP</div>
       <div class="arch-main">
@@ -701,6 +709,8 @@ h2.sec-title {
       </div>
       <div class="arch-tag core">Mandatory core</div>
     </div>
+  </div>
+
     <div class="arch-row optional">
       <div class="arch-phase opt">Plugin · Ph 2</div>
       <div class="arch-main">
@@ -742,6 +752,16 @@ h2.sec-title {
       <div class="arch-tag opt">Optional plugin</div>
     </div>
   </div>
+    <div class="arch-row optional">
+      <div class="arch-phase opt">Future</div>
+      <div class="arch-main">
+        <div class="arch-name">Licensing</div>
+        <div class="arch-desc">Tenant isolation and multitenant licensing.</div>
+      </div>
+      <div class="arch-tag opt">Optional plugin</div>
+    </div>
+  </div>
+
 </section>
 
 <!-- ══ MODULES ══ -->
@@ -836,6 +856,12 @@ h2.sec-title {
       <h3>Data migration &amp; go-live</h3>
       <p>Full extraction from Kelar CLMS — historical lease and billing data, PMWeb documents, CAD/GIS files — with parallel run and cutover.</p>
     </div>
+    <div class="mod-tile">
+      <div class="mod-phase opt" style="color:var(--ink-mid);background:var(--page)">Phase 8 · Future</div>
+      <div class="mod-icon-wrap">🔄</div>
+      <h3>Licensing Module</h3>
+      <p>Onboard multiple tenants and include licensing for each. Tie RBAC to license.</p>
+    </div>
   </div>
 </section>
 
@@ -920,7 +946,7 @@ h2.sec-title {
       <div style="font-size:13px;color:var(--ink-soft);line-height:1.7">
         All integrations use <strong style="font-weight:600;color:var(--ink)">REST APIs</strong> where available, with SFTP file exchange as a fallback.<br><br>
         All data in transit encrypted with <strong style="font-weight:600;color:var(--ink)">TLS 1.3</strong> minimum.<br><br>
-        All data hosted in <strong style="font-weight:600;color:var(--ink)">US-based Azure East US region</strong> to comply with TSA data sovereignty requirements.
+        All data hosted in <strong style="font-weight:600;color:var(--ink)">US-based cloud region</strong> to comply with TSA data sovereignty requirements.
       </div>
     </div>
   </div>
@@ -1086,6 +1112,14 @@ h2.sec-title {
       </div>
     </div>
     <div class="oq-cell">
+      <div class="oq-badge high">H</div>
+      <div class="oq-body">
+        <h4>Deployment strategy</h4>
+        <p>Decision on whether to use GovCloud for hosting.</p>
+        <div class="oq-owner">→ Massport IT / Oracle team</div>
+      </div>
+    </div>
+    <div class="oq-cell">
       <div class="oq-badge med">M</div>
       <div class="oq-body">
         <h4>Maritime scope confirmation</h4>
@@ -1099,14 +1133,6 @@ h2.sec-title {
         <h4>Target implementation start window</h4>
         <p>Massport's working assumption is a mid-2027 start, after the current 3-year Oracle Fusion rollout concludes — pending senior leadership confirmation. Massport has flagged a strong preference to avoid burdening end users with parallel testing/design work during the Fusion rollout's final phase.</p>
         <div class="oq-owner">→ Massport CIO / Leadership</div>
-      </div>
-    </div>
-    <div class="oq-cell">
-      <div class="oq-badge med">M</div>
-      <div class="oq-body">
-        <h4>Future multi-tenant / licensing interest</h4>
-        <p>Jared raised whether Massport could eventually license the platform to other port authorities or municipalities. InApp has not yet built a multi-tenant solution for a government client (only for an NGO across multiple states/regions). Worth confirming early since it affects backend configurability decisions, even if not pursued in the initial contract.</p>
-        <div class="oq-owner">→ Massport Leadership</div>
       </div>
     </div>
   </div>
